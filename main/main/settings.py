@@ -63,6 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.settings",
             ],
         },
     },
@@ -125,6 +126,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # TIE: base location of uploaded files
 MEDIA_ROOT = BASE_DIR / "media"
-# This isn't working
-# "/Users/wallace/Documents/Lab-All/Lab-Projects/GIT/track-image-experiments/media/"
+
 MEDIA_URL = "/media/"
