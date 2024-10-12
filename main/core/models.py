@@ -4,7 +4,7 @@ from django.core.cache import cache
 
 # Create your models here.
 
-
+"""
 # see https://globaldev.tech/blog/practical-application-singleton-design-pattern
 class SingletonModel(models.Model):
     class Meta:
@@ -33,36 +33,78 @@ class SingletonModel(models.Model):
 
 class SiteSettings(SingletonModel):
     probe_types = models.TextField(blank=True)
-    sales_department = models.EmailField(blank=True)
-    twilio_account_sid = models.CharField(
-        max_length=255, default="ACbcad883c9c3e9d9913a715557dddff99"
-    )
-    twilio_auth_token = models.CharField(
-        max_length=255, default="abd4d45dd57dd79b86dd51df2e2a6cd5"
-    )
-    twilio_phone_number = models.CharField(max_length=255, default="+15006660005")
+    # fish_technologies = models.TextField(blank=True)
+    # flourescent_molecules = models.TextField(blank=True)
+    # panel_ids = models.TextField(blank=True)
+    # imaging_success_options = models.TextField(blank=True)
 
-
+ 
 def get_probe_types():
     all_settings = SiteSettings.objects.all()
     # create a list from the string field and then strip each element to remove extraneous spaces
-    probe_type_list = [x.strip() for x in all_settings[0].probe_types.split(",")]
+    options_list = [x.strip() for x in all_settings[0].probe_types.split(",")]
     # we actually need a list of tuples
-    return list(zip(probe_type_list, probe_type_list))
+    return list(zip(options_list, options_list))
+
+def get_probe_types():
+    return get_choices(ProbeTypes)
+
+def get_fish_technologies():
+    rows = FishTechnologies.objects.all()
+    values = [row.technology.strip() for row in rows]
+    return list(zip(values, values))
+
+"""
+
+
+class ProbeTypes(models.Model):
+    option = models.CharField(max_length=30, unique=True)
+
+
+class FishTechnologies(models.Model):
+    option = models.CharField(max_length=30, unique=True)
+
+
+class FlourescentMolecules(models.Model):
+    option = models.CharField(max_length=30, unique=True)
+
+
+class ProbePanelIDs(models.Model):
+    option = models.CharField(max_length=30, unique=True)
+
+
+class ImagingSuccessOptions(models.Model):
+    option = models.CharField(max_length=30, unique=True)
+
+
+def get_choices(model):
+    rows = model.objects.all()
+    options = [row.option.strip() for row in rows]
+    return list(zip(options, options))
 
 
 class Probe(models.Model):
     id = models.CharField(primary_key=True, max_length=30, unique=True)
     target_analyte = models.CharField(max_length=255)
     target_gencode_id = models.CharField(max_length=255, blank=True, default="")
-    probe_type = models.CharField(max_length=30, choices=get_probe_types(), null=True)
+    probe_type = models.CharField(
+        max_length=30, choices=get_choices(ProbeTypes), null=True
+    )
     antibody_clone_id = models.CharField(max_length=30, blank=True, default="")
-    # fish_technology = models.CharField(max_length=30, choices=get_fish_technologies(), null=True)
-    # fluorescent_molecule = models.CharField(max_length=30, choices=get_flourescent_molecules(), null=True)
+    fish_technology = models.CharField(
+        max_length=30, choices=get_choices(FishTechnologies), null=True
+    )
+    fluorescent_molecule = models.CharField(
+        max_length=30, choices=get_choices(FlourescentMolecules), null=True
+    )
     stock_concentration = models.CharField(max_length=30, blank=True, default="")
     working_dilution = models.CharField(max_length=30, blank=True, default="")
-    # panel_id = models.CharField(max_length=30, choices=get_panel_ids(), null=True)
-    # imaging_success = models.CharField(max_length=30, choices=get_imaging_success_options(), null=True)
+    probe_panel_id = models.CharField(
+        max_length=30, choices=get_choices(ProbePanelIDs), null=True
+    )
+    imaging_success = models.CharField(
+        max_length=30, choices=get_choices(ImagingSuccessOptions), null=True
+    )
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
     # Akoya Fusion exposure time
