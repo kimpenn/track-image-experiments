@@ -4,58 +4,6 @@ from django.core.cache import cache
 
 # Create your models here.
 
-"""
-# see https://globaldev.tech/blog/practical-application-singleton-design-pattern
-class SingletonModel(models.Model):
-    class Meta:
-        abstract = True
-
-    def delete(self, *args, **kwargs):
-        pass
-
-    def set_cache(self):
-        cache.set(self.__class__.__name__, self)
-
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super(SingletonModel, self).save(*args, **kwargs)
-
-        self.set_cache()
-
-    @classmethod
-    def load(cls):
-        if cache.get(cls.__name__) is None:
-            obj, created = cls.objects.get_or_create(pk=1)
-            if not created:
-                obj.set_cache()
-        return cache.get(cls.__name__)
-
-
-class SiteSettings(SingletonModel):
-    probe_types = models.TextField(blank=True)
-    # fish_technologies = models.TextField(blank=True)
-    # flourescent_molecules = models.TextField(blank=True)
-    # panel_ids = models.TextField(blank=True)
-    # imaging_success_options = models.TextField(blank=True)
-
- 
-def get_probe_types():
-    all_settings = SiteSettings.objects.all()
-    # create a list from the string field and then strip each element to remove extraneous spaces
-    options_list = [x.strip() for x in all_settings[0].probe_types.split(",")]
-    # we actually need a list of tuples
-    return list(zip(options_list, options_list))
-
-def get_probe_types():
-    return get_choices(ProbeTypes)
-
-def get_fish_technologies():
-    rows = FishTechnologies.objects.all()
-    values = [row.technology.strip() for row in rows]
-    return list(zip(values, values))
-
-"""
-
 
 class ProbeTypes(models.Model):
     option = models.CharField(max_length=30, unique=True)
@@ -135,10 +83,14 @@ class ExposureTime(models.Model):
 class Donor(models.Model):
     FEMALE = "F"
     MALE = "M"
+    OTHER = "O"
+    NOT_REPORTED = "N"
     UNKNOWN = "U"
     SEX = {
         FEMALE: "Female",
         MALE: "Male",
+        OTHER: "Other",
+        NOT_REPORTED: "Not reported",
         UNKNOWN: "Unknown",
     }
 
