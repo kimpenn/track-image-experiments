@@ -5,31 +5,41 @@ from .forms import GetChoiceField
 
 # Register your models here.
 from .models import (
-    Microscope,
-    Donor,
-    Panel,
-    Probe,
-    ExposureTime,
+    Species,
+    Organs,
+    OrganRegions,
+    People,
+    StainingProtocols,
     ProbeTypes,
     FishTechnologies,
     FlourescentMolecules,
     ProbePanels,
     ImagingSuccessOptions,
+    Probe,
+    Panel,
+    Microscope,
+    ExposureTime,
+    Donor,
     Slides,
 )
 
 
 my_models = [
-    Microscope,
-    Donor,
-    Panel,
-    # Probe,
-    # ExposureTime,
+    Species,
+    Organs,
+    OrganRegions,
+    People,
+    StainingProtocols,
     ProbeTypes,
     FishTechnologies,
     FlourescentMolecules,
     ProbePanels,
     ImagingSuccessOptions,
+    # Probe,
+    Panel,
+    Microscope,
+    # ExposureTime,
+    Donor,
     Slides,
 ]
 admin.site.register(my_models)
