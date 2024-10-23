@@ -23,6 +23,13 @@ class OrganRegions(models.Model):
         verbose_name_plural = "organ regions"
 
 
+class MaterialSources(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+
+    class Meta:
+        verbose_name_plural = "material sources"
+
+
 class People(models.Model):
     name = models.CharField(max_length=30, unique=True)
 
@@ -138,7 +145,12 @@ class Donor(models.Model):
         help_text="If a public ID is provided, then this is the organization where that ID is registered.",
     )
     sex = models.CharField(max_length=1, choices=SEX, default=UNKNOWN)
-    age = models.PositiveSmallIntegerField(blank=True)
+    age = models.PositiveSmallIntegerField(blank=True, null=True, default=None)
+
+    # use "name" as alternative to "lab_id". this allows us to use our default foreign key display function in the admin panel
+    @property
+    def name(self):
+        return self.lab_id
 
     class Meta:
         verbose_name_plural = "donor"
@@ -156,23 +168,23 @@ class Slides(models.Model):
     species = models.ForeignKey(Species, on_delete=models.SET_NULL, null=True, default=None)
     organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
     organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
-    donor = models.ForeignKey(Donor, on_delete=models.SET_NULL, null=True, default=None)
-    material_source = models.CharField(max_length=30, default="")
+    donor = models.ForeignKey(Donor, on_delete=models.SET_NULL, null=True, blank=True, default=None)
+    material_source = models.ForeignKey(MaterialSources, on_delete=models.SET_NULL, null=True, default=None)
     source_format = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
     source_prep_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="source_prep_by"
     )
-    source_prep_date = models.DateField(default=datetime.date.today)
+    source_prep_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
     staining_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
     )
-    staining_date = models.DateField(default=datetime.date.today)
+    staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     probe_panel = models.ManyToManyField(ProbePanels)
     imaging_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
     )
-    imaging_date = models.DateField(default=datetime.date.today)
+    imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
 
     class Meta:
