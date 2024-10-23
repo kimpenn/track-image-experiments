@@ -5,91 +5,73 @@ from django.core.cache import cache
 # Create your models here.
 
 
-class Species(models.Model):
+class ModelWithName(models.Model):  # Abstract model, assuming a name field
     name = models.CharField(max_length=30, unique=True)
 
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+
+class Species(ModelWithName):
     class Meta:
         verbose_name_plural = "species"
 
 
-class Organs(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+class Organs(ModelWithName):
+    class Meta:
+        verbose_name_plural = "organs"
 
 
-class OrganRegions(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+class OrganRegions(ModelWithName):
 
     class Meta:
         verbose_name_plural = "organ regions"
 
 
-class MaterialSources(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class MaterialSources(ModelWithName):
     class Meta:
         verbose_name_plural = "material sources"
 
 
-class People(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class People(ModelWithName):
     class Meta:
         verbose_name_plural = "people"
 
 
-class StainingProtocols(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class StainingProtocols(ModelWithName):
     class Meta:
         verbose_name_plural = "staining protocols"
 
 
-class ProbeTypes(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class ProbeTypes(ModelWithName):
     class Meta:
         verbose_name_plural = "probe types"
 
 
-class FishTechnologies(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class FishTechnologies(ModelWithName):
     class Meta:
         verbose_name_plural = "fish technologies"
 
 
-class FlourescentMolecules(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class FlourescentMolecules(ModelWithName):
     class Meta:
         verbose_name_plural = "flourescent molecules"
 
 
-class ProbePanels(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class ProbePanels(ModelWithName):
     class Meta:
         verbose_name_plural = "probe panels"
 
 
-class ImagingSuccessOptions(models.Model):
-    name = models.CharField(max_length=30, unique=True)
-
+class ImagingSuccessOptions(ModelWithName):
     class Meta:
         verbose_name_plural = "imaging success options"
 
 
-"""
-# not sure how to keep this from accessing the database when module is first imported
-def get_choices(model):
-    rows = model.objects.all()
-    options = [row.name.strip() for row in rows]
-    return list(zip(options, options))
-"""
-
-
-class Probe(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+class Probe(ModelWithName):
     target_analyte = models.CharField(max_length=255)
     target_gencode_id = models.CharField(max_length=255, blank=True, default="")
     probe_type = models.ForeignKey(ProbeTypes, on_delete=models.SET_NULL, null=True, default=None)
@@ -104,15 +86,13 @@ class Probe(models.Model):
     imaging_notes = models.TextField(blank=True, default="")
 
 
-class Panel(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+class Panel(ModelWithName):
     description = models.CharField(max_length=255, blank=True, default="")
     notes = models.TextField(blank=True, default="")
     probe_list = models.CharField(max_length=255, blank=True, default="")
 
 
-class Microscope(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+class Microscope(ModelWithName):
     model = models.CharField(max_length=30)
     json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
 
@@ -120,7 +100,10 @@ class Microscope(models.Model):
 class ExposureTime(models.Model):
     probe = models.ForeignKey(Probe, on_delete=models.CASCADE)
     microscope = models.ForeignKey(Microscope, on_delete=models.CASCADE)
-    exposure_time = models.DecimalField(decimal_places=4, max_digits=6)
+    exposure_time = models.DecimalField(decimal_places=2, max_digits=6)
+
+    def __str__(self):
+        return "{} / {} / {} msec".format(self.probe, self.microscope, self.exposure_time)
 
 
 class Donor(models.Model):
@@ -155,8 +138,11 @@ class Donor(models.Model):
     class Meta:
         verbose_name_plural = "donor"
 
+    def __str__(self):
+        return "{}".format(self.lab_id)
 
-class Slides(models.Model):
+
+class Slides(ModelWithName):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
@@ -164,7 +150,6 @@ class Slides(models.Model):
         CULTURE: "Culture",
     }
 
-    name = models.CharField(max_length=30, unique=True, default="")
     species = models.ForeignKey(Species, on_delete=models.SET_NULL, null=True, default=None)
     organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
     organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
