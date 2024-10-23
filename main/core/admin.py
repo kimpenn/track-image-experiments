@@ -25,16 +25,22 @@ from .models import (
 )
 
 
+class ExposureTimeAdmin(admin.ModelAdmin):
+    list_display = ["probe", "microscope", "exposure_time"]
+
+
+class ExposureTimeInLine(admin.TabularInline):
+    model = ExposureTime
+    extra = 0  # number of rows to show
+
+
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
+    inlines = [ExposureTimeInLine]
 
 
 class PanelAdmin(admin.ModelAdmin):
     list_display = ["name", "description", "probe_list"]
-
-
-class ExposureTimeAdmin(admin.ModelAdmin):
-    list_display = ["probe", "microscope", "exposure_time"]
 
 
 class SlidesAdmin(admin.ModelAdmin):
