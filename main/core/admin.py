@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .forms import GetForeignKeyName, GetManyToManyName
+# from .forms import GetForeignKeyName, GetManyToManyName
 
 
 # Register your models here.
@@ -36,27 +36,6 @@ class PanelAdmin(admin.ModelAdmin):
 class ExposureTimeAdmin(admin.ModelAdmin):
     list_display = ["probe", "microscope", "exposure_time"]
 
-    """
-    # list_display = ["get_probe", "get_microscope", "exposure_time"]
-    # this is a foreign key and we want the name field
-    def get_probe(self, obj):
-        return obj.probe.name
-    get_probe.admin_order_field = "probe"  # Allows column order sorting
-    get_probe.short_description = "Probes"  # Renames column head
-    """
-
-    """
-    # this is not necessary where the model str() returns the name
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        # if db_field.name = "probe" then this will return the Probe table
-        model = ExposureTime._meta.get_field(db_field.name).related_model
-        return GetForeignKeyName(queryset=model.objects.all())
-        # This is another way to do it, if I want a different option per field/table
-        # if db_field.name == "probe":
-        #    return GetForeignKeyName(queryset=Probe.objects.all())
-        # return super().formfield_for_foreignkey(db_field, request, **kwargs)
-    """
-
 
 class SlidesAdmin(admin.ModelAdmin):
     list_display = ["name", "species", "organ", "staining_protocol"]
@@ -82,12 +61,6 @@ class SlidesAdmin(admin.ModelAdmin):
             },
         ),
     ]
-
-    """
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        model = Slides._meta.get_field(db_field.name).related_model
-        return GetManyToManyName(queryset=model.objects.all())
-    """
 
 
 # we can remove models from this list, if we don't want them to show in the admin index.
