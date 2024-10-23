@@ -24,39 +24,13 @@ from .models import (
     Slides,
 )
 
-# we can remove models from this list, if we don't want them to show in the admin index.
-# we use get_app_list() below to stop them from being sorted and rather they are listed
-# in the order they are added with admin.site.register().
-my_models = [
-    Donor,
-    Microscope,
-    FishTechnologies,
-    FlourescentMolecules,
-    ImagingSuccessOptions,
-    MaterialSources,
-    Organs,
-    OrganRegions,
-    People,
-    ProbePanels,
-    ProbeTypes,
-    Species,
-    StainingProtocols,
-]
-admin.site.register(my_models)
-
 
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
 
 
-admin.site.register(Probe, ProbeAdmin)
-
-
 class PanelAdmin(admin.ModelAdmin):
     list_display = ["name", "description", "probe_list"]
-
-
-admin.site.register(Panel, PanelAdmin)
 
 
 class ExposureTimeAdmin(admin.ModelAdmin):
@@ -82,9 +56,6 @@ class ExposureTimeAdmin(admin.ModelAdmin):
         #    return GetForeignKeyName(queryset=Probe.objects.all())
         # return super().formfield_for_foreignkey(db_field, request, **kwargs)
     """
-
-
-admin.site.register(ExposureTime, ExposureTimeAdmin)
 
 
 class SlidesAdmin(admin.ModelAdmin):
@@ -119,7 +90,29 @@ class SlidesAdmin(admin.ModelAdmin):
     """
 
 
+# we can remove models from this list, if we don't want them to show in the admin index.
+# we use get_app_list() below to stop them from being sorted and rather they are listed
+# in the order they are added with admin.site.register().
+my_models = [
+    Donor,
+    Microscope,
+    FishTechnologies,
+    FlourescentMolecules,
+    ImagingSuccessOptions,
+    MaterialSources,
+    Organs,
+    OrganRegions,
+    People,
+    ProbePanels,
+    ProbeTypes,
+    Species,
+    StainingProtocols,
+]
 admin.site.register(Slides, SlidesAdmin)
+admin.site.register(Panel, PanelAdmin)
+admin.site.register(Probe, ProbeAdmin)
+admin.site.register(ExposureTime, ExposureTimeAdmin)
+admin.site.register(my_models)
 
 
 def get_app_list(self, request, app_label=None):
