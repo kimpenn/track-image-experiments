@@ -37,6 +37,8 @@ class ExposureTimeInLine(admin.TabularInline):
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     inlines = [ExposureTimeInLine]
+    list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
+    search_fields = ["name"]
 
 
 class PanelAdmin(admin.ModelAdmin):
@@ -45,6 +47,8 @@ class PanelAdmin(admin.ModelAdmin):
 
 class SlidesAdmin(admin.ModelAdmin):
     list_display = ["name", "species", "organ", "staining_protocol"]
+    list_filter = ("species", "organ", "staining_protocol")
+    search_fields = ["name"]
 
     fieldsets = [
         ("Origin", {"fields": ["name", "species", "organ", "organ_region", "donor"]}),
