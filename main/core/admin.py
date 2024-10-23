@@ -56,6 +56,10 @@ class SlidePanelsAdmin(admin.ModelAdmin):
     list_display = ["slide", "panel"]
 
 
+class MicroscopeAdmin(admin.ModelAdmin):
+    list_display = ["name", "model", "json_description"]
+
+
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     inlines = [ExposureTimeInLine]
@@ -103,7 +107,6 @@ class SlideAdmin(admin.ModelAdmin):
 # in the order they are added with admin.site.register().
 my_models = [
     Donor,
-    Microscope,
     FishTechnologies,
     FlourescentMolecules,
     ImagingSuccessOptions,
@@ -120,6 +123,7 @@ admin.site.register(Slide, SlideAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)
+admin.site.register(Microscope, MicroscopeAdmin)
 admin.site.register(my_models)
 
 
