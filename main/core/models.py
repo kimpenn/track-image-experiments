@@ -80,7 +80,7 @@ class Probe(ModelWithName):
     fluorescent_molecule = models.ForeignKey(FlourescentMolecules, on_delete=models.SET_NULL, null=True, default=None)
     stock_concentration = models.CharField(max_length=30, blank=True, default="")
     working_dilution = models.CharField(max_length=30, blank=True, default="")
-    probe_panel = models.ForeignKey(ProbePanels, on_delete=models.SET_NULL, null=True, default=None)
+    probe_panel = models.ManyToManyField(ProbePanels)
     imaging_success = models.ForeignKey(ImagingSuccessOptions, on_delete=models.SET_NULL, null=True, default=None)
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
@@ -95,15 +95,6 @@ class Panel(ModelWithName):
 class Microscope(ModelWithName):
     model = models.CharField(max_length=30)
     json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
-
-
-class ExposureTime(models.Model):
-    probe = models.ForeignKey(Probe, on_delete=models.CASCADE)
-    microscope = models.ForeignKey(Microscope, on_delete=models.CASCADE)
-    exposure_time = models.DecimalField(decimal_places=2, max_digits=6)
-
-    def __str__(self):
-        return "{} / {} / {} msec".format(self.probe, self.microscope, self.exposure_time)
 
 
 class Donor(models.Model):
@@ -142,7 +133,7 @@ class Donor(models.Model):
         return "{}".format(self.lab_id)
 
 
-class Slides(ModelWithName):
+class Slide(ModelWithName):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
@@ -174,3 +165,12 @@ class Slides(ModelWithName):
 
     class Meta:
         verbose_name_plural = "slides"
+
+
+class ExposureTime(models.Model):
+    probe = models.ForeignKey(Probe, on_delete=models.CASCADE)
+    microscope = models.ForeignKey(Microscope, on_delete=models.CASCADE)
+    exposure_time = models.DecimalField(decimal_places=2, max_digits=6)
+
+    def __str__(self):
+        return "{} / {} / {} msec".format(self.probe, self.microscope, self.exposure_time)

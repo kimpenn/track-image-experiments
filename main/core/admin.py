@@ -21,12 +21,8 @@ from .models import (
     Microscope,
     ExposureTime,
     Donor,
-    Slides,
+    Slide,
 )
-
-
-class ExposureTimeAdmin(admin.ModelAdmin):
-    list_display = ["probe", "microscope", "exposure_time"]
 
 
 class ExposureTimeInLine(admin.TabularInline):
@@ -34,18 +30,46 @@ class ExposureTimeInLine(admin.TabularInline):
     extra = 0  # number of rows to show
 
 
+class ProbePanelsInLine(admin.TabularInline):
+    model = Probe.probe_panel.through
+    extra = 0
+    verbose_name = "Panel"
+    verbose_name_plural = "Panels"
+
+
+class SlidePanelsInLine(admin.TabularInline):
+    model = Slide.probe_panel.through
+    extra = 0
+    verbose_name = "Panel"
+    verbose_name_plural = "Panels"
+
+
+class ExposureTimeAdmin(admin.ModelAdmin):
+    list_display = ["probe", "microscope", "exposure_time"]
+
+
+class PanelProbesAdmin(admin.ModelAdmin):
+    list_display = ["panel", "probe"]
+
+
+class SlidePanelsAdmin(admin.ModelAdmin):
+    list_display = ["slide", "panel"]
+
+
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     inlines = [ExposureTimeInLine]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
     search_fields = ["name"]
+    exclude = ("probe_panel",)
+    inlines = (ProbePanelsInLine,)
 
 
 class PanelAdmin(admin.ModelAdmin):
     list_display = ["name", "description", "probe_list"]
 
 
-class SlidesAdmin(admin.ModelAdmin):
+class SlideAdmin(admin.ModelAdmin):
     list_display = ["name", "species", "organ", "staining_protocol"]
     list_filter = ("species", "organ", "staining_protocol")
     search_fields = ["name"]
@@ -61,7 +85,7 @@ class SlidesAdmin(admin.ModelAdmin):
         (
             "Staining",
             {
-                "fields": ["probe_panel", "staining_protocol", "staining_by", "staining_date"],
+                "fields": ["staining_protocol", "staining_by", "staining_date"],
             },
         ),
         (
@@ -71,6 +95,7 @@ class SlidesAdmin(admin.ModelAdmin):
             },
         ),
     ]
+    inlines = (SlidePanelsInLine,)
 
 
 # we can remove models from this list, if we don't want them to show in the admin index.
@@ -91,7 +116,7 @@ my_models = [
     Species,
     StainingProtocols,
 ]
-admin.site.register(Slides, SlidesAdmin)
+admin.site.register(Slide, SlideAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)
