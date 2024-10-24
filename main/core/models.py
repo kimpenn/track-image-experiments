@@ -61,14 +61,15 @@ class FlourescentMolecules(ModelWithName):
         verbose_name_plural = "flourescent molecules"
 
 
-class ProbePanels(ModelWithName):
-    class Meta:
-        verbose_name_plural = "probe panels"
-
-
 class ImagingSuccessOptions(ModelWithName):
     class Meta:
         verbose_name_plural = "imaging success options"
+
+
+class Panel(ModelWithName):
+    description = models.CharField(max_length=255, blank=True, default="")
+    notes = models.TextField(blank=True, default="")
+    # probe_list = models.CharField(max_length=255, blank=True, default="")
 
 
 class Probe(ModelWithName):
@@ -80,16 +81,10 @@ class Probe(ModelWithName):
     fluorescent_molecule = models.ForeignKey(FlourescentMolecules, on_delete=models.SET_NULL, null=True, default=None)
     stock_concentration = models.CharField(max_length=30, blank=True, default="")
     working_dilution = models.CharField(max_length=30, blank=True, default="")
-    probe_panel = models.ManyToManyField(ProbePanels)
+    probe_panel = models.ManyToManyField(Panel, related_name="probes")
     imaging_success = models.ForeignKey(ImagingSuccessOptions, on_delete=models.SET_NULL, null=True, default=None)
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
-
-
-class Panel(ModelWithName):
-    description = models.CharField(max_length=255, blank=True, default="")
-    notes = models.TextField(blank=True, default="")
-    probe_list = models.CharField(max_length=255, blank=True, default="")
 
 
 class Microscope(ModelWithName):
@@ -156,7 +151,7 @@ class Slide(ModelWithName):
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
     )
     staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    probe_panel = models.ManyToManyField(ProbePanels)
+    probe_panel = models.ManyToManyField(Panel, related_name="panels")
     imaging_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
     )

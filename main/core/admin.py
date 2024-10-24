@@ -14,7 +14,6 @@ from .models import (
     ProbeTypes,
     FishTechnologies,
     FlourescentMolecules,
-    ProbePanels,
     ImagingSuccessOptions,
     Probe,
     Panel,
@@ -30,30 +29,22 @@ class ExposureTimeInLine(admin.TabularInline):
     extra = 0  # number of rows to show
 
 
-class ProbePanelsInLine(admin.TabularInline):
+class ProbeInLine(admin.TabularInline):
     model = Probe.probe_panel.through
     extra = 0
-    verbose_name = "Panel"
-    verbose_name_plural = "Panels"
+    # verbose_name = "Panel"
+    # verbose_name_plural = "Panels"
 
 
-class SlidePanelsInLine(admin.TabularInline):
+class SlideInLine(admin.TabularInline):
     model = Slide.probe_panel.through
     extra = 0
-    verbose_name = "Panel"
-    verbose_name_plural = "Panels"
+    # verbose_name = "Panel"
+    # verbose_name_plural = "Panels"
 
 
 class ExposureTimeAdmin(admin.ModelAdmin):
     list_display = ["probe", "microscope", "exposure_time"]
-
-
-class PanelProbesAdmin(admin.ModelAdmin):
-    list_display = ["panel", "probe"]
-
-
-class SlidePanelsAdmin(admin.ModelAdmin):
-    list_display = ["slide", "panel"]
 
 
 class MicroscopeAdmin(admin.ModelAdmin):
@@ -62,15 +53,22 @@ class MicroscopeAdmin(admin.ModelAdmin):
 
 class ProbeAdmin(admin.ModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
-    inlines = [ExposureTimeInLine]
+    # inlines = [ExposureTimeInLine]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
     search_fields = ["name"]
     exclude = ("probe_panel",)
-    inlines = (ProbePanelsInLine,)
+    inlines = (
+        ProbeInLine,
+        ExposureTimeInLine,
+    )
 
 
 class PanelAdmin(admin.ModelAdmin):
-    list_display = ["name", "description", "probe_list"]
+    list_display = ["name", "description"]
+    inlines = (
+        ProbeInLine,
+        SlideInLine,
+    )
 
 
 class SlideAdmin(admin.ModelAdmin):
@@ -99,7 +97,7 @@ class SlideAdmin(admin.ModelAdmin):
             },
         ),
     ]
-    inlines = (SlidePanelsInLine,)
+    inlines = (SlideInLine,)
 
 
 # we can remove models from this list, if we don't want them to show in the admin index.
@@ -114,7 +112,6 @@ my_models = [
     Organs,
     OrganRegions,
     People,
-    ProbePanels,
     ProbeTypes,
     Species,
     StainingProtocols,
