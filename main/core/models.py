@@ -89,7 +89,10 @@ class Probe(ModelWithName):
 
 class Microscope(ModelWithName):
     model = models.CharField(max_length=30)
-    json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
+    json_description = models.CharField(
+        max_length=50, blank=True, null=True, help_text="This file should exist in /lab/imaging/repo/resources/"
+    )
+    # json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
 
 
 class Donor(models.Model):
