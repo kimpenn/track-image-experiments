@@ -6,7 +6,7 @@ from django.core.cache import cache
 
 
 class ModelWithName(models.Model):  # Abstract model, assuming a name field
-    name = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=30, unique=True, blank=False, null=False)
 
     class Meta:
         abstract = True
@@ -34,6 +34,11 @@ class OrganRegions(ModelWithName):
 class MaterialSources(ModelWithName):
     class Meta:
         verbose_name_plural = "material sources"
+
+
+class SourceTreatments(ModelWithName):
+    class Meta:
+        verbose_name_plural = "source treatments"
 
 
 class People(ModelWithName):
@@ -131,6 +136,24 @@ class Donor(models.Model):
         return "{}".format(self.lab_id)
 
 
+class Assay(models.Model):
+    name = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="image ID")
+    staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
+    staining_by = models.ForeignKey(
+        People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
+    )
+    staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
+    probe_panel = models.ManyToManyField(Panel, related_name="panels")
+    imaging_by = models.ForeignKey(
+        People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
+    )
+    imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
+    microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
+
+    class Meta:
+        verbose_name_plural = "assays"
+
+
 class Slide(ModelWithName):
     SLICE = "S"
     CULTURE = "C"
@@ -144,22 +167,16 @@ class Slide(ModelWithName):
     organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
     donor = models.ForeignKey(Donor, on_delete=models.SET_NULL, null=True, blank=True, default=None)
     material_source = models.ForeignKey(MaterialSources, on_delete=models.SET_NULL, null=True, default=None)
+    source_treatment = models.ForeignKey(SourceTreatments, on_delete=models.SET_NULL, null=True, default=None)
+    source_storage_time = models.IntegerField(
+        null=True, blank=True, help_text="How long the tissue was stored before slicing (days)."
+    )
     source_format = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
     source_prep_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="source_prep_by"
     )
     source_prep_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
-    staining_by = models.ForeignKey(
-        People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
-    )
-    staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    probe_panel = models.ManyToManyField(Panel, related_name="panels")
-    imaging_by = models.ForeignKey(
-        People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
-    )
-    imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
+    assay = models.ManyToManyField(Assay, related_name="assays")
 
     class Meta:
         verbose_name_plural = "slides"

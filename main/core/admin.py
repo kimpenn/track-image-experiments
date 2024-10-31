@@ -9,6 +9,7 @@ from .models import (
     Organs,
     OrganRegions,
     MaterialSources,
+    SourceTreatments,
     People,
     StainingProtocols,
     ProbeTypes,
@@ -21,6 +22,7 @@ from .models import (
     ExposureTime,
     Donor,
     Slide,
+    Assay,
 )
 
 
@@ -36,11 +38,14 @@ class ProbeInLine(admin.TabularInline):
     # verbose_name_plural = "Panels"
 
 
-class SlideInLine(admin.TabularInline):
-    model = Slide.probe_panel.through
+class AssayInLine(admin.TabularInline):
+    model = Assay.probe_panel.through
     extra = 0
-    # verbose_name = "Panel"
-    # verbose_name_plural = "Panels"
+
+
+class SlideInLine(admin.TabularInline):
+    model = Slide.assay.through
+    extra = 0
 
 
 class ExposureTimeAdmin(admin.ModelAdmin):
@@ -67,13 +72,13 @@ class PanelAdmin(admin.ModelAdmin):
     list_display = ["name", "description"]
     inlines = (
         ProbeInLine,
-        SlideInLine,
+        AssayInLine,
     )
 
 
 class SlideAdmin(admin.ModelAdmin):
-    list_display = ["name", "species", "organ", "staining_protocol"]
-    list_filter = ("species", "organ", "staining_protocol")
+    list_display = ["name", "species", "organ", "donor"]
+    list_filter = ("species", "organ", "source_format")
     search_fields = ["name"]
 
     fieldsets = [
@@ -81,7 +86,30 @@ class SlideAdmin(admin.ModelAdmin):
         (
             "Source",
             {
-                "fields": ["material_source", "source_format", "source_prep_by", "source_prep_date"],
+                "fields": [
+                    "material_source",
+                    "source_treatment",
+                    "source_storage_time",
+                    "source_format",
+                    "source_prep_by",
+                    "source_prep_date",
+                ],
+            },
+        ),
+    ]
+    inlines = (SlideInLine,)
+
+
+class AssayAdmin(admin.ModelAdmin):
+    list_display = ["name", "staining_protocol", "microscope"]
+    list_filter = ("staining_protocol", "microscope")
+    search_fields = ["name"]
+
+    fieldsets = [
+        (
+            "Name",
+            {
+                "fields": ["name"],
             },
         ),
         (
@@ -97,7 +125,10 @@ class SlideAdmin(admin.ModelAdmin):
             },
         ),
     ]
-    inlines = (SlideInLine,)
+    inlines = (
+        AssayInLine,
+        SlideInLine,
+    )
 
 
 # we can remove models from this list, if we don't want them to show in the admin index.
@@ -109,6 +140,7 @@ my_models = [
     FlourescentMolecules,
     ImagingSuccessOptions,
     MaterialSources,
+    SourceTreatments,
     Organs,
     OrganRegions,
     People,
@@ -116,6 +148,7 @@ my_models = [
     Species,
     StainingProtocols,
 ]
+admin.site.register(Assay, AssayAdmin)
 admin.site.register(Slide, SlideAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
