@@ -4,8 +4,9 @@ preload_app = True
 timeout = 60
 bind = "0.0.0.0:8000"
 workers = 4
-chdir = "/app/"
 module = "main.wsgi"
+# used this for Docker
+# chdir = "/app/"
 
 
 def post_fork(server, worker):
