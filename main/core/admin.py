@@ -51,10 +51,6 @@ class SlideInLine(admin.TabularInline):
 
 
 def export_as_csv(self, request, queryset):
-    """
-    From here:
-    https://stackoverflow.com/questions/58921265/django-admin-download-data-as-csv/72285203#72285203
-    """
     meta = self.model._meta
     field_names = [field.name for field in meta.fields]
 
