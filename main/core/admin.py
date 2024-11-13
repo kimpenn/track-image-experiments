@@ -1,4 +1,6 @@
+import csv
 from django.contrib import admin
+from django.http import HttpResponse
 
 # from .forms import GetForeignKeyName, GetManyToManyName
 
@@ -48,15 +50,46 @@ class SlideInLine(admin.TabularInline):
     extra = 0
 
 
-class ExposureTimeAdmin(admin.ModelAdmin):
+def export_as_csv(self, request, queryset):
+    """
+    From here:
+    https://stackoverflow.com/questions/58921265/django-admin-download-data-as-csv/72285203#72285203
+    """
+    meta = self.model._meta
+    field_names = [field.name for field in meta.fields]
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = "attachment; filename={}.csv".format(meta.verbose_name_plural)
+    writer = csv.writer(response)
+
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = writer.writerow([getattr(obj, field) for field in field_names])
+
+    return response
+
+
+class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name field
+    class Meta:
+        abstract = True
+
+    actions = ("export_local",)
+
+    def export_local(self, request, queryset):
+        return export_as_csv(self, request, queryset)
+
+    export_local.short_description = "Export Selected"
+
+
+class ExposureTimeAdmin(ModelAdminWithExport):
     list_display = ["probe", "microscope", "exposure_time"]
 
 
-class MicroscopeAdmin(admin.ModelAdmin):
+class MicroscopeAdmin(ModelAdminWithExport):
     list_display = ["name", "model", "json_description"]
 
 
-class ProbeAdmin(admin.ModelAdmin):
+class ProbeAdmin(ModelAdminWithExport):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     # inlines = [ExposureTimeInLine]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
@@ -68,7 +101,7 @@ class ProbeAdmin(admin.ModelAdmin):
     )
 
 
-class PanelAdmin(admin.ModelAdmin):
+class PanelAdmin(ModelAdminWithExport):
     list_display = ["name", "description"]
     inlines = (
         ProbeInLine,
@@ -76,7 +109,7 @@ class PanelAdmin(admin.ModelAdmin):
     )
 
 
-class SlideAdmin(admin.ModelAdmin):
+class SlideAdmin(ModelAdminWithExport):
     list_display = ["name", "species", "organ", "donor"]
     list_filter = ("species", "organ", "source_format")
     search_fields = ["name"]
@@ -100,11 +133,10 @@ class SlideAdmin(admin.ModelAdmin):
     inlines = (SlideInLine,)
 
 
-class AssayAdmin(admin.ModelAdmin):
+class AssayAdmin(ModelAdminWithExport):
     list_display = ["name", "staining_protocol", "microscope"]
     list_filter = ("staining_protocol", "microscope")
     search_fields = ["name"]
-
     fieldsets = [
         (
             "Name",
