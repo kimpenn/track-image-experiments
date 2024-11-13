@@ -50,31 +50,27 @@ class SlideInLine(admin.TabularInline):
     extra = 0
 
 
-def export_as_csv(self, request, queryset):
-    meta = self.model._meta
-    field_names = [field.name for field in meta.fields]
-
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = "attachment; filename={}.csv".format(meta.verbose_name_plural)
-    writer = csv.writer(response)
-
-    writer.writerow(field_names)
-    for obj in queryset:
-        row = writer.writerow([getattr(obj, field) for field in field_names])
-
-    return response
-
-
 class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name field
     class Meta:
         abstract = True
 
-    actions = ("export_local",)
+    actions = ("export_to_csv",)
 
-    def export_local(self, request, queryset):
-        return export_as_csv(self, request, queryset)
+    def export_to_csv(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
 
-    export_local.short_description = "Export Selected"
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename={}.csv".format(meta.verbose_name_plural)
+        writer = csv.writer(response)
+
+        writer.writerow(field_names)
+        for obj in queryset:
+            row = writer.writerow([getattr(obj, field) for field in field_names])
+
+        return response
+
+    export_to_csv.short_description = "Export Selected"
 
 
 class ExposureTimeAdmin(ModelAdminWithExport):
