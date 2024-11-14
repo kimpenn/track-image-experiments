@@ -26,6 +26,7 @@ from .models import (
     ExposureTime,
     Source,
     Slide,
+    SliceOrCulture,
     Assay,
 )
 
@@ -49,6 +50,11 @@ class AssayInLine(admin.TabularInline):
 
 class SlideInLine(admin.TabularInline):
     model = Slide.assay.through
+    extra = 0
+
+
+class SliceOrCultureInLine(admin.TabularInline):
+    model = SliceOrCulture
     extra = 0
 
 
@@ -106,7 +112,6 @@ class ProbeResource(resources.ModelResource):
 
 class ProbeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
-    # inlines = [ExposureTimeInLine]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
     search_fields = ["name"]
     exclude = ("probe_panel",)
@@ -129,28 +134,36 @@ class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
 
 
-class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
-    list_display = ["name", "organ", "source"]
-    list_filter = ("organ", "source_format")
+class SliceOrCultureAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+    list_display = ["name", "type", "parent", "organ", "treatment"]
+    list_filter = ("type", "parent", "organ", "treatment")
     search_fields = ["name"]
 
     fieldsets = [
-        ("Origin", {"fields": ["name", "organ", "organ_region", "source"]}),
+        ("Type", {"fields": ["type"]}),
+        ("Origin", {"fields": ["name", "parent", "organ", "organ_region"]}),
         (
             "Source",
             {
                 "fields": [
-                    "material_source",
-                    "source_treatment",
-                    "source_storage_time",
-                    "source_format",
-                    "source_prep_by",
-                    "source_prep_date",
+                    "treatment",
+                    "storage_time",
+                    "prep_by",
+                    "prep_date",
+                    "acquired_from",
                 ],
             },
         ),
-        ("Multiplexed", {"fields": ["multiple_tissue"]}),
+        ("Slide", {"fields": ["slide"]}),
     ]
+
+
+class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+    search_fields = ["name"]
+    inLines = (
+        SliceOrCultureInLine,
+        AssayInLine,
+    )
 
 
 class AssayResource(resources.ModelResource):
@@ -213,6 +226,7 @@ my_models = [
 ]
 admin.site.register(Assay, AssayAdmin)
 admin.site.register(Slide, SlideAdmin)
+admin.site.register(SliceOrCulture, SliceOrCultureAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)

@@ -156,38 +156,56 @@ class Assay(models.Model):
 
 
 class Slide(ModelWithName):
+    assay = models.ManyToManyField(Assay, related_name="assays")
+
+    class Meta:
+        verbose_name_plural = "slides"
+
+
+class SliceOrCulture(ModelWithName):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
         SLICE: "Slice",
         CULTURE: "Culture",
     }
-
-    organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
-    organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
-    source = models.ForeignKey(
+    type = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
+    parent = models.ForeignKey(
         Source,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         default=None,
-        help_text="The donor for this tissue section.",
+        help_text="The donor for this tissue section, if relevant.",
     )
-    material_source = models.ForeignKey(MaterialSources, on_delete=models.SET_NULL, null=True, default=None)
-    source_treatment = models.ForeignKey(SourceTreatments, on_delete=models.SET_NULL, null=True, default=None)
-    source_storage_time = models.IntegerField(
-        null=True, blank=True, help_text="How long the tissue was stored before slicing (days)."
+    organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
+    organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
+    treatment = models.ForeignKey(SourceTreatments, on_delete=models.SET_NULL, null=True, default=None)
+    storage_time = models.IntegerField(
+        null=True, blank=True, help_text="How long was this stored before mounting (days)?"
     )
-    source_format = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
-    source_prep_by = models.ForeignKey(
-        People, on_delete=models.SET_NULL, null=True, default=None, related_name="source_prep_by"
+    prep_by = models.ForeignKey(
+        People,
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="source_prep_by",
+        help_text="Who prepared this slice/culture?",
     )
-    source_prep_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    assay = models.ManyToManyField(Assay, related_name="assays")
-    multiple_tissue = models.BooleanField(default=False, help_text="Does this slide contain multiple tissue sections?")
-
-    class Meta:
-        verbose_name_plural = "slides"
+    prep_date = models.DateField(
+        default=datetime.date.today,
+        null=True,
+        blank=True,
+        help_text="When was this slice/culture prepared?",
+    )
+    acquired_from = models.ForeignKey(
+        MaterialSources,
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        help_text="Where did we get this material from?",
+    )
+    slide = models.ForeignKey(Slide, on_delete=models.SET_NULL, null=True, default=None)
 
 
 class ExposureTime(models.Model):
