@@ -49,7 +49,7 @@ class AssayInLine(admin.TabularInline):
 
 
 class SlideInLine(admin.TabularInline):
-    model = Slide.assay.through
+    model = Slide.assays_applied.through
     extra = 0
 
 
@@ -134,6 +134,15 @@ class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
 
 
+class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+    search_fields = ["name"]
+    # exclude = ("assays_applied",)
+    inLines = (
+        SliceOrCultureInLine,
+        AssayInLine,
+    )
+
+
 class SliceOrCultureAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "type", "parent", "organ", "treatment"]
     list_filter = ("type", "parent", "organ", "treatment")
@@ -156,14 +165,6 @@ class SliceOrCultureAdmin(ModelAdminWithExport, ImportExportModelAdmin):
         ),
         ("Slide", {"fields": ["slide"]}),
     ]
-
-
-class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
-    search_fields = ["name"]
-    inLines = (
-        SliceOrCultureInLine,
-        AssayInLine,
-    )
 
 
 class AssayResource(resources.ModelResource):

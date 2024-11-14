@@ -74,7 +74,6 @@ class ImagingSuccessOptions(ModelWithName):
 class Panel(ModelWithName):
     description = models.CharField(max_length=255, blank=True, default="")
     notes = models.TextField(blank=True, default="")
-    # probe_list = models.CharField(max_length=255, blank=True, default="")
 
 
 class Probe(ModelWithName):
@@ -156,7 +155,7 @@ class Assay(models.Model):
 
 
 class Slide(ModelWithName):
-    assay = models.ManyToManyField(Assay, related_name="assays")
+    assays_applied = models.ManyToManyField(Assay, related_name="assays")
 
     class Meta:
         verbose_name_plural = "slides"
