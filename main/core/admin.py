@@ -24,7 +24,7 @@ from .models import (
     Panel,
     Microscope,
     ExposureTime,
-    Donor,
+    Source,
     Slide,
     Assay,
 )
@@ -125,13 +125,17 @@ class PanelAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     )
 
 
+class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+    list_display = ["name", "species", "sex", "age"]
+
+
 class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
-    list_display = ["name", "species", "organ", "donor"]
-    list_filter = ("species", "organ", "source_format")
+    list_display = ["name", "organ", "source"]
+    list_filter = ("organ", "source_format")
     search_fields = ["name"]
 
     fieldsets = [
-        ("Origin", {"fields": ["name", "species", "organ", "organ_region", "donor"]}),
+        ("Origin", {"fields": ["name", "organ", "organ_region", "source"]}),
         (
             "Source",
             {
@@ -145,8 +149,8 @@ class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
                 ],
             },
         ),
+        ("Multiplexed", {"fields": ["multiple_tissue"]}),
     ]
-    inlines = (SlideInLine,)
 
 
 class AssayResource(resources.ModelResource):
@@ -195,7 +199,6 @@ class AssayAdmin(ModelAdminWithExport, ImportExportModelAdmin):
 # we use get_app_list() below to stop them from being sorted and rather they are listed
 # in the order they are added with admin.site.register().
 my_models = [
-    Donor,
     FishTechnologies,
     FlourescentMolecules,
     ImagingSuccessOptions,
@@ -214,6 +217,7 @@ admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
+admin.site.register(Source, SourceAdmin)
 admin.site.register(my_models, ImportExportModelAdmin)
 
 

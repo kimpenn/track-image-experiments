@@ -100,7 +100,7 @@ class Microscope(ModelWithName):
     # json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
 
 
-class Donor(models.Model):
+class Source(models.Model):
     FEMALE = "F"
     MALE = "M"
     OTHER = "O"
@@ -121,6 +121,7 @@ class Donor(models.Model):
         blank=True,
         help_text="If a public ID is provided, then this is the organization where that ID is registered.",
     )
+    species = models.ForeignKey(Species, on_delete=models.SET_NULL, null=True, default=None)
     sex = models.CharField(max_length=1, choices=SEX, default=UNKNOWN)
     age = models.PositiveSmallIntegerField(blank=True, null=True, default=None)
 
@@ -130,7 +131,7 @@ class Donor(models.Model):
         return self.lab_id
 
     class Meta:
-        verbose_name_plural = "donor"
+        verbose_name_plural = "source"
 
     def __str__(self):
         return "{}".format(self.lab_id)
@@ -162,10 +163,16 @@ class Slide(ModelWithName):
         CULTURE: "Culture",
     }
 
-    species = models.ForeignKey(Species, on_delete=models.SET_NULL, null=True, default=None)
     organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
     organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
-    donor = models.ForeignKey(Donor, on_delete=models.SET_NULL, null=True, blank=True, default=None)
+    source = models.ForeignKey(
+        Source,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="The donor for this tissue section.",
+    )
     material_source = models.ForeignKey(MaterialSources, on_delete=models.SET_NULL, null=True, default=None)
     source_treatment = models.ForeignKey(SourceTreatments, on_delete=models.SET_NULL, null=True, default=None)
     source_storage_time = models.IntegerField(
@@ -177,6 +184,7 @@ class Slide(ModelWithName):
     )
     source_prep_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     assay = models.ManyToManyField(Assay, related_name="assays")
+    multiple_tissue = models.BooleanField(default=False, help_text="Does this slide contain multiple tissue sections?")
 
     class Meta:
         verbose_name_plural = "slides"
