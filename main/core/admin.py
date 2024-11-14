@@ -1,8 +1,10 @@
 import csv
 from django.contrib import admin
+from django.forms import Field
 from django.http import HttpResponse
-
-# from .forms import GetForeignKeyName, GetManyToManyName
+from import_export.admin import ImportExportModelAdmin
+from import_export import resources
+from import_export import fields, widgets
 
 
 # Register your models here.
@@ -54,6 +56,16 @@ class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name
     class Meta:
         abstract = True
 
+    """
+    # remove the ability to bulk delete from the listview page
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+    """
+
+    # add exporting option to listview page
     actions = ("export_to_csv",)
 
     def export_to_csv(self, request, queryset):
@@ -73,15 +85,26 @@ class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name
     export_to_csv.short_description = "Export Selected"
 
 
-class ExposureTimeAdmin(ModelAdminWithExport):
+class ExposureTimeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["probe", "microscope", "exposure_time"]
 
 
-class MicroscopeAdmin(ModelAdminWithExport):
+class MicroscopeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "model", "json_description"]
 
 
-class ProbeAdmin(ModelAdminWithExport):
+class ProbeResource(resources.ModelResource):
+    probe_panel = fields.Field(
+        column_name="probe_panel",
+        attribute="probe_panel",
+        widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
+    )
+
+    class Meta:
+        model = Probe
+
+
+class ProbeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     # inlines = [ExposureTimeInLine]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
@@ -91,9 +114,10 @@ class ProbeAdmin(ModelAdminWithExport):
         ProbeInLine,
         ExposureTimeInLine,
     )
+    resource_classes = [ProbeResource]
 
 
-class PanelAdmin(ModelAdminWithExport):
+class PanelAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "description"]
     inlines = (
         ProbeInLine,
@@ -101,7 +125,7 @@ class PanelAdmin(ModelAdminWithExport):
     )
 
 
-class SlideAdmin(ModelAdminWithExport):
+class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "species", "organ", "donor"]
     list_filter = ("species", "organ", "source_format")
     search_fields = ["name"]
@@ -125,7 +149,18 @@ class SlideAdmin(ModelAdminWithExport):
     inlines = (SlideInLine,)
 
 
-class AssayAdmin(ModelAdminWithExport):
+class AssayResource(resources.ModelResource):
+    probe_panel = fields.Field(
+        column_name="probe_panel",
+        attribute="probe_panel",
+        widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
+    )
+
+    class Meta:
+        model = Assay
+
+
+class AssayAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "staining_protocol", "microscope"]
     list_filter = ("staining_protocol", "microscope")
     search_fields = ["name"]
@@ -153,6 +188,7 @@ class AssayAdmin(ModelAdminWithExport):
         AssayInLine,
         SlideInLine,
     )
+    resource_classes = [AssayResource]
 
 
 # we can remove models from this list, if we don't want them to show in the admin index.
@@ -178,7 +214,7 @@ admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
-admin.site.register(my_models)
+admin.site.register(my_models, ImportExportModelAdmin)
 
 
 def get_app_list(self, request, app_label=None):
