@@ -137,7 +137,7 @@ class Source(models.Model):
 
 
 class Assay(models.Model):
-    name = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="image ID")
+    name = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="assay ID")
     staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
     staining_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
