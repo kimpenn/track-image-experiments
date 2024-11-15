@@ -26,7 +26,6 @@ class Organs(ModelWithName):
 
 
 class OrganRegions(ModelWithName):
-
     class Meta:
         verbose_name_plural = "organ regions"
 

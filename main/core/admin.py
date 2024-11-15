@@ -233,7 +233,7 @@ admin.site.register(Probe, ProbeAdmin)
 admin.site.register(ExposureTime, ExposureTimeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
 admin.site.register(Source, SourceAdmin)
-admin.site.register(my_models, ImportExportModelAdmin)
+# admin.site.register(my_models, ImportExportModelAdmin)
 
 
 def get_app_list(self, request, app_label=None):
