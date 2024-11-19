@@ -36,21 +36,28 @@ class ExposureTimeInLine(admin.TabularInline):
     extra = 0  # number of rows to show
 
 
-class ProbeInLine(admin.TabularInline):
+class ProbePanelInLine(admin.TabularInline):
     model = Probe.probe_panel.through
     extra = 0
     # verbose_name = "Panel"
     # verbose_name_plural = "Panels"
 
 
-class AssayInLine(admin.TabularInline):
+class AssayProbeInLine(admin.TabularInline):
     model = Assay.probe_panel.through
     extra = 0
 
 
-class SlideInLine(admin.TabularInline):
-    model = Slide.assays_applied.through
+class AssaySlideInLine(admin.TabularInline):
+    model = Assay.slides_used.through
     extra = 0
+
+
+"""
+class SlideAssayInLine(admin.TabularInline):
+    model = Slide.assays_used.through
+    extra = 0
+"""
 
 
 class SliceOrCultureInLine(admin.TabularInline):
@@ -116,7 +123,7 @@ class ProbeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     search_fields = ["name"]
     exclude = ("probe_panel",)
     inlines = (
-        ProbeInLine,
+        ProbePanelInLine,
         ExposureTimeInLine,
     )
     resource_classes = [ProbeResource]
@@ -125,8 +132,8 @@ class ProbeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
 class PanelAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     list_display = ["name", "description"]
     inlines = (
-        ProbeInLine,
-        AssayInLine,
+        ProbePanelInLine,
+        AssayProbeInLine,
     )
 
 
@@ -136,10 +143,10 @@ class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
 
 class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     search_fields = ["name"]
-    # exclude = ("assays_applied",)
     inLines = (
         SliceOrCultureInLine,
-        AssayInLine,
+        AssaySlideInLine,
+        # SlideAssayInLine,
     )
 
 
@@ -203,8 +210,9 @@ class AssayAdmin(ModelAdminWithExport, ImportExportModelAdmin):
         ),
     ]
     inlines = (
-        AssayInLine,
-        SlideInLine,
+        AssayProbeInLine,
+        AssaySlideInLine,
+        # SlideAssayInLine,
     )
     resource_classes = [AssayResource]
 

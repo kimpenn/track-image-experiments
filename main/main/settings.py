@@ -28,6 +28,11 @@ SECRET_KEY = "django-insecure-h7xwj)vv&muzulvo_hs9up#ce_i($-&h_+4z3*1aa8l7wea2a@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# required for Debug Toolbar
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # Load SECURITY_KEY and DEBUG from .env, if exists
 env_path = load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -47,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "core",
     "import_export",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -57,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"

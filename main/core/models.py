@@ -135,6 +135,13 @@ class Source(models.Model):
         return "{}".format(self.lab_id)
 
 
+class Slide(ModelWithName):
+    # assays_used = models.ManyToManyField(Assay, related_name="assays", blank=True)
+
+    class Meta:
+        verbose_name_plural = "slides"
+
+
 class Assay(models.Model):
     name = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="assay ID")
     staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
@@ -148,16 +155,10 @@ class Assay(models.Model):
     )
     imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
+    slides_used = models.ManyToManyField(Slide, related_name="slides", blank=True)
 
     class Meta:
         verbose_name_plural = "assays"
-
-
-class Slide(ModelWithName):
-    assays_applied = models.ManyToManyField(Assay, related_name="assays")
-
-    class Meta:
-        verbose_name_plural = "slides"
 
 
 class SliceOrCulture(ModelWithName):
