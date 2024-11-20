@@ -143,7 +143,7 @@ class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
 
 class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
     search_fields = ["name"]
-    inLines = (
+    inlines = (
         SliceOrCultureInLine,
         AssaySlideInLine,
         # SlideAssayInLine,
