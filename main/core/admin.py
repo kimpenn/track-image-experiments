@@ -36,47 +36,86 @@ class ExposureTimeInLine(admin.TabularInline):
     extra = 0  # number of rows to show
 
 
-class ProbePanelInLine(admin.TabularInline):
-    model = Probe.probe_panel.through
+class PanelProbesInLine(admin.TabularInline):
+    model = Panel.probe.through
     extra = 0
-    # verbose_name = "Panel"
-    # verbose_name_plural = "Panels"
+    verbose_name_plural = "Probes used in panel"
+    verbose_name = "probe"
 
 
-class AssayProbeInLine(admin.TabularInline):
-    model = Assay.probe_panel.through
+class ProbePanelsInLine(admin.TabularInline):
+    model = Panel.probe.through
     extra = 0
+    verbose_name_plural = "Panel containing probe"
+    verbose_name = "panel"
 
 
-class AssaySlideInLine(admin.TabularInline):
-    model = Assay.slides_used.through
+class AssayPanelsInLine(admin.TabularInline):
+    model = Assay.panel.through
     extra = 0
+    verbose_name_plural = "Panels used in assay"
+    verbose_name = "panel"
 
 
-"""
-class SlideAssayInLine(admin.TabularInline):
-    model = Slide.assays_used.through
+class PanelAssaysInLine(admin.TabularInline):
+    model = Assay.panel.through
     extra = 0
-"""
+    verbose_name_plural = "Assays using panel"
+    verbose_name = "assay"
 
 
-class SliceOrCultureInLine(admin.TabularInline):
+class AssaySlidesInLine(admin.TabularInline):
+    model = Assay.slide.through
+    extra = 0
+    verbose_name_plural = "Applied to these slides"
+    verbose_name = "slide"
+
+
+class SlideAssaysInLine(admin.TabularInline):
+    model = Assay.slide.through
+    extra = 0
+    verbose_name_plural = "These assays used"
+    verbose_name = "assay"
+
+
+class SliceOrCultureInLine(admin.StackedInline):
     model = SliceOrCulture
     extra = 0
+    verbose_name = "Sample"
+    verbose_name_plural = "Samples"
+    # fields = ["type", "parent", "organ", "organ_region", "treatment"]
+    fieldsets = [
+        ("Type", {"fields": ["type"]}),
+        ("Origin", {"fields": ["parent", "organ", "organ_region"]}),
+        (
+            "Source",
+            {
+                "fields": [
+                    "treatment",
+                    "storage_time",
+                    "prep_by",
+                    "prep_date",
+                    "acquired_from",
+                ],
+            },
+        ),
+        ("Slide", {"fields": ["slide"]}),
+    ]
 
 
-class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name field
+class CoreModelAdmin(admin.ModelAdmin):
+    """
+    This abstract model adds
+        1. exporting of tables
+        2. custom CSS for formatting of tabular inlines to remove "object" titles
+    """
+
     class Meta:
         abstract = True
 
-    """
-    # remove the ability to bulk delete from the listview page
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        if "delete_selected" in actions:
-            del actions["delete_selected"]
-        return actions
-    """
+    # overwrite admin CSS
+    class Media:
+        css = {"all": ("css/core/custom_admin.css",)}
 
     # add exporting option to listview page
     actions = ("export_to_csv",)
@@ -97,12 +136,17 @@ class ModelAdminWithExport(admin.ModelAdmin):  # Abstract model, assuming a name
 
     export_to_csv.short_description = "Export Selected"
 
+    """
+    # remove the ability to bulk delete from the listview page
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
+        return actions
+    """
 
-class ExposureTimeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
-    list_display = ["probe", "microscope", "exposure_time"]
 
-
-class MicroscopeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+class MicroscopeAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "model", "json_description"]
 
 
@@ -117,40 +161,40 @@ class ProbeResource(resources.ModelResource):
         model = Probe
 
 
-class ProbeAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+class ProbeAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
     list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
     search_fields = ["name"]
-    exclude = ("probe_panel",)
     inlines = (
-        ProbePanelInLine,
+        ProbePanelsInLine,
         ExposureTimeInLine,
     )
     resource_classes = [ProbeResource]
 
 
-class PanelAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "description"]
+    exclude = ("probe",)
     inlines = (
-        ProbePanelInLine,
-        AssayProbeInLine,
+        PanelProbesInLine,
+        PanelAssaysInLine,
     )
 
 
-class SourceAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+class SourceAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
 
 
-class SlideAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
     search_fields = ["name"]
     inlines = (
         SliceOrCultureInLine,
-        AssaySlideInLine,
-        # SlideAssayInLine,
+        SlideAssaysInLine,
     )
 
 
-class SliceOrCultureAdmin(ModelAdminWithExport, ImportExportModelAdmin):
+"""
+class SliceOrCultureAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "type", "parent", "organ", "treatment"]
     list_filter = ("type", "parent", "organ", "treatment")
     search_fields = ["name"]
@@ -172,6 +216,7 @@ class SliceOrCultureAdmin(ModelAdminWithExport, ImportExportModelAdmin):
         ),
         ("Slide", {"fields": ["slide"]}),
     ]
+"""
 
 
 class AssayResource(resources.ModelResource):
@@ -185,15 +230,15 @@ class AssayResource(resources.ModelResource):
         model = Assay
 
 
-class AssayAdmin(ModelAdminWithExport, ImportExportModelAdmin):
-    list_display = ["name", "staining_protocol", "microscope"]
+class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
+    list_display = ["assay_id", "staining_protocol", "microscope"]
     list_filter = ("staining_protocol", "microscope")
-    search_fields = ["name"]
+    search_fields = ["assay_id"]
     fieldsets = [
         (
             "Name",
             {
-                "fields": ["name"],
+                "fields": ["assay_id"],
             },
         ),
         (
@@ -210,9 +255,8 @@ class AssayAdmin(ModelAdminWithExport, ImportExportModelAdmin):
         ),
     ]
     inlines = (
-        AssayProbeInLine,
-        AssaySlideInLine,
-        # SlideAssayInLine,
+        AssayPanelsInLine,
+        AssaySlidesInLine,
     )
     resource_classes = [AssayResource]
 
@@ -235,12 +279,12 @@ my_models = [
 ]
 admin.site.register(Assay, AssayAdmin)
 admin.site.register(Slide, SlideAdmin)
-admin.site.register(SliceOrCulture, SliceOrCultureAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
-admin.site.register(ExposureTime, ExposureTimeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
 admin.site.register(Source, SourceAdmin)
+# admin.site.register(SliceOrCulture, SliceOrCultureAdmin)
+# admin.site.register(ExposureTime, ExposureTimeAdmin)
 # admin.site.register(my_models, ImportExportModelAdmin)
 
 

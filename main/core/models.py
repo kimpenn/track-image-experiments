@@ -70,11 +70,6 @@ class ImagingSuccessOptions(ModelWithName):
         verbose_name_plural = "imaging success options"
 
 
-class Panel(ModelWithName):
-    description = models.CharField(max_length=255, blank=True, default="")
-    notes = models.TextField(blank=True, default="")
-
-
 class Probe(ModelWithName):
     target_analyte = models.CharField(max_length=255)
     target_gencode_id = models.CharField(max_length=255, blank=True, default="")
@@ -84,10 +79,15 @@ class Probe(ModelWithName):
     fluorescent_molecule = models.ForeignKey(FlourescentMolecules, on_delete=models.SET_NULL, null=True, default=None)
     stock_concentration = models.CharField(max_length=30, blank=True, default="")
     working_dilution = models.CharField(max_length=30, blank=True, default="")
-    probe_panel = models.ManyToManyField(Panel, related_name="probes")
     imaging_success = models.ForeignKey(ImagingSuccessOptions, on_delete=models.SET_NULL, null=True, default=None)
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
+
+
+class Panel(ModelWithName):
+    description = models.CharField(max_length=255, blank=True, default="")
+    notes = models.TextField(blank=True, default="")
+    probe = models.ManyToManyField(Probe, related_name="probes")
 
 
 class Microscope(ModelWithName):
@@ -143,25 +143,33 @@ class Slide(ModelWithName):
 
 
 class Assay(models.Model):
-    name = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="assay ID")
+    assay_id = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="assay ID")
     staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
     staining_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
     )
     staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    probe_panel = models.ManyToManyField(Panel, related_name="panels")
+    panel = models.ManyToManyField(Panel, related_name="panels")
     imaging_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
     )
     imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
-    slides_used = models.ManyToManyField(Slide, related_name="slides", blank=True)
+    slide = models.ManyToManyField(Slide, related_name="slides", blank=True)
+
+    # use "name" as alternative to "assay_id". this allows us to use our default foreign key display function in the admin panel
+    @property
+    def name(self):
+        return self.assay_id
+
+    def __str__(self):
+        return "{}".format(self.assay_id)
 
     class Meta:
-        verbose_name_plural = "assays"
+        verbose_name_plural = "Assays"
 
 
-class SliceOrCulture(ModelWithName):
+class SliceOrCulture(models.Model):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
