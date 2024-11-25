@@ -39,50 +39,50 @@ class ExposureTimeInLine(admin.TabularInline):
 class PanelProbesInLine(admin.TabularInline):
     model = Panel.probe.through
     extra = 0
-    verbose_name_plural = "Probes used in panel"
+    verbose_name_plural = "Panel contains these probes"
     verbose_name = "probe"
 
 
 class ProbePanelsInLine(admin.TabularInline):
     model = Panel.probe.through
     extra = 0
-    verbose_name_plural = "Panel containing probe"
+    verbose_name_plural = "Probe used in these panels"
     verbose_name = "panel"
 
 
 class AssayPanelsInLine(admin.TabularInline):
     model = Assay.panel.through
     extra = 0
-    verbose_name_plural = "Panels used in assay"
+    verbose_name_plural = "Assay uses these panels"
     verbose_name = "panel"
 
 
 class PanelAssaysInLine(admin.TabularInline):
     model = Assay.panel.through
     extra = 0
-    verbose_name_plural = "Assays using panel"
+    verbose_name_plural = "Panel used in these assays"
     verbose_name = "assay"
 
 
 class AssaySlidesInLine(admin.TabularInline):
     model = Assay.slide.through
     extra = 0
-    verbose_name_plural = "Applied to these slides"
+    verbose_name_plural = "Assay applied to these slides"
     verbose_name = "slide"
 
 
 class SlideAssaysInLine(admin.TabularInline):
     model = Assay.slide.through
     extra = 0
-    verbose_name_plural = "These assays used"
+    verbose_name_plural = "Slide used with these assays"
     verbose_name = "assay"
 
 
 class SliceOrCultureInLine(admin.StackedInline):
     model = SliceOrCulture
     extra = 0
+    verbose_name_plural = "Slide contains these slices or culture"
     verbose_name = "Sample"
-    verbose_name_plural = "Samples"
     # fields = ["type", "parent", "organ", "organ_region", "treatment"]
     fieldsets = [
         ("Type", {"fields": ["type"]}),
