@@ -86,7 +86,13 @@ class SliceOrCultureInLine(admin.StackedInline):
     # fields = ["type", "parent", "organ", "organ_region", "treatment"]
     fieldsets = [
         ("Type", {"fields": ["type"]}),
-        ("Origin", {"fields": ["parent", "organ", "organ_region"]}),
+        (
+            "Origin",
+            {
+                "fields": ["parent", "organ", "organ_region"],
+                "classes": ("expanded",),
+            },
+        ),
         (
             "Source",
             {
@@ -97,9 +103,10 @@ class SliceOrCultureInLine(admin.StackedInline):
                     "prep_date",
                     "acquired_from",
                 ],
+                "classes": ("expanded",),
             },
         ),
-        ("Slide", {"fields": ["slide"]}),
+        # ("Slide", {"fields": ["slide"]}),
     ]
 
 
@@ -113,9 +120,9 @@ class CoreModelAdmin(admin.ModelAdmin):
     class Meta:
         abstract = True
 
-    # overwrite admin CSS
+    # overwrite admin CSS to sort out extranious inline titles
     class Media:
-        css = {"all": ("css/core/custom_admin.css",)}
+        css = {"all": ("core/css/custom_admin.css",)}
 
     # add exporting option to listview page
     actions = ("export_to_csv",)
