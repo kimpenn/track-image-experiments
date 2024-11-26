@@ -84,7 +84,7 @@ class SampleInLine(admin.StackedInline):
     extra = 0
     verbose_name_plural = "Slide contains these slices or culture"
     verbose_name = "Sample"
-    # fields = ["type", "parent", "organ", "organ_region", "treatment"]
+    # fields = ["type", "donor", "organ", "organ_region", "treatment"]
     fieldsets = [
         ("Type", {"fields": ["type"]}),
         (
@@ -254,13 +254,13 @@ class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
 
 class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["name", "type", "parent", "organ", "treatment"]
-    list_filter = ("type", "parent", "organ", "treatment")
+    list_display = ["name", "type", "donor", "organ", "treatment"]
+    list_filter = ("type", "donor", "organ", "treatment")
     search_fields = ["name"]
 
     fieldsets = [
         ("Type", {"fields": ["type"]}),
-        ("Origin", {"fields": ["name", "parent", "organ", "organ_region"]}),
+        ("Origin", {"fields": ["name", "donor", "organ", "organ_region"]}),
         (
             "Source",
             {
@@ -368,7 +368,7 @@ admin.site.register(Probe, ProbeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
 admin.site.register(Donor, DonorAdmin)
 
-admin.site.register(Sample)
+admin.site.register(Sample, SampleAdmin)
 admin.site.register(ExposureTime)
 admin.site.register(my_models, ImportExportModelAdmin)
 
