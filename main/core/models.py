@@ -20,6 +20,11 @@ class Species(ModelWithName):
         verbose_name_plural = "species"
 
 
+class Vendor(ModelWithName):
+    class Meta:
+        verbose_name_plural = "vendors"
+
+
 class Organs(ModelWithName):
     class Meta:
         verbose_name_plural = "organs"
@@ -82,6 +87,7 @@ class Probe(ModelWithName):
     imaging_success = models.ForeignKey(ImagingSuccessOptions, on_delete=models.SET_NULL, null=True, default=None)
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, default=None)
 
 
 class Panel(ModelWithName):
@@ -98,7 +104,7 @@ class Microscope(ModelWithName):
     # json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
 
 
-class Source(models.Model):
+class Donor(models.Model):
     FEMALE = "F"
     MALE = "M"
     OTHER = "O"
@@ -129,7 +135,7 @@ class Source(models.Model):
         return self.lab_id
 
     class Meta:
-        verbose_name_plural = "source"
+        verbose_name_plural = "donor"
 
     def __str__(self):
         return "{}".format(self.lab_id)
@@ -169,7 +175,7 @@ class Assay(models.Model):
         verbose_name_plural = "Assays"
 
 
-class SliceOrCulture(models.Model):
+class Sample(ModelWithName):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
@@ -177,8 +183,8 @@ class SliceOrCulture(models.Model):
         CULTURE: "Culture",
     }
     type = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
-    parent = models.ForeignKey(
-        Source,
+    donor = models.ForeignKey(
+        Donor,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

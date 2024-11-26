@@ -24,10 +24,11 @@ from .models import (
     Panel,
     Microscope,
     ExposureTime,
-    Source,
+    Donor,
     Slide,
-    SliceOrCulture,
+    Sample,
     Assay,
+    Vendor,
 )
 
 
@@ -78,8 +79,8 @@ class SlideAssaysInLine(admin.TabularInline):
     verbose_name = "assay"
 
 
-class SliceOrCultureInLine(admin.StackedInline):
-    model = SliceOrCulture
+class SampleInLine(admin.StackedInline):
+    model = Sample
     extra = 0
     verbose_name_plural = "Slide contains these slices or culture"
     verbose_name = "Sample"
@@ -89,7 +90,7 @@ class SliceOrCultureInLine(admin.StackedInline):
         (
             "Origin",
             {
-                "fields": ["parent", "organ", "organ_region"],
+                "fields": ["donor", "organ", "organ_region"],
                 "classes": ("expanded",),
             },
         ),
@@ -173,6 +174,11 @@ class ProbeResource(resources.ModelResource):
         attribute="fluorescent_molecule",
         widget=widgets.ForeignKeyWidget(FlourescentMolecules, field="name"),
     )
+    vendor = fields.Field(
+        column_name="vendor",
+        attribute="vendor",
+        widget=widgets.ForeignKeyWidget(Vendor, field="name"),
+    )
     imaging_success = fields.Field(
         column_name="imaging_success",
         attribute="imaging_success",
@@ -210,7 +216,7 @@ class PanelResource(resources.ModelResource):
     )
 
     class Meta:
-        model = Source
+        model = Panel
 
 
 class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
@@ -223,7 +229,7 @@ class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
     resource_classes = [PanelResource]
 
 
-class SourceResource(resources.ModelResource):
+class DonorResource(resources.ModelResource):
     species = fields.Field(
         column_name="species",
         attribute="species",
@@ -231,24 +237,23 @@ class SourceResource(resources.ModelResource):
     )
 
     class Meta:
-        model = Source
+        model = Donor
 
 
-class SourceAdmin(CoreModelAdmin, ImportExportModelAdmin):
+class DonorAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
-    resource_classes = [SourceResource]
+    resource_classes = [DonorResource]
 
 
 class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
     search_fields = ["name"]
     inlines = (
-        SliceOrCultureInLine,
+        SampleInLine,
         SlideAssaysInLine,
     )
 
 
-"""
-class SliceOrCultureAdmin(CoreModelAdmin, ImportExportModelAdmin):
+class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "type", "parent", "organ", "treatment"]
     list_filter = ("type", "parent", "organ", "treatment")
     search_fields = ["name"]
@@ -270,7 +275,6 @@ class SliceOrCultureAdmin(CoreModelAdmin, ImportExportModelAdmin):
         ),
         ("Slide", {"fields": ["slide"]}),
     ]
-"""
 
 
 class AssayResource(resources.ModelResource):
@@ -355,16 +359,18 @@ my_models = [
     ProbeTypes,
     Species,
     StainingProtocols,
+    Vendor,
 ]
 admin.site.register(Assay, AssayAdmin)
 admin.site.register(Slide, SlideAdmin)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(Probe, ProbeAdmin)
 admin.site.register(Microscope, MicroscopeAdmin)
-admin.site.register(Source, SourceAdmin)
-# admin.site.register(SliceOrCulture, SliceOrCultureAdmin)
-# admin.site.register(ExposureTime, ExposureTimeAdmin)
-# admin.site.register(my_models, ImportExportModelAdmin)
+admin.site.register(Donor, DonorAdmin)
+
+admin.site.register(Sample)
+admin.site.register(ExposureTime)
+admin.site.register(my_models, ImportExportModelAdmin)
 
 
 def get_app_list(self, request, app_label=None):
