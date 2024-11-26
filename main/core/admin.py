@@ -158,11 +158,34 @@ class MicroscopeAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
 
 class ProbeResource(resources.ModelResource):
-    probe_panel = fields.Field(
-        column_name="probe_panel",
-        attribute="probe_panel",
+    probe_type = fields.Field(
+        column_name="probe_type",
+        attribute="probe_type",
+        widget=widgets.ForeignKeyWidget(ProbeTypes, field="name"),
+    )
+    fish_technology = fields.Field(
+        column_name="fish_technology",
+        attribute="fish_technology",
+        widget=widgets.ForeignKeyWidget(FishTechnologies, field="name"),
+    )
+    fluorescent_molecule = fields.Field(
+        column_name="fluorescent_molecule",
+        attribute="fluorescent_molecule",
+        widget=widgets.ForeignKeyWidget(FlourescentMolecules, field="name"),
+    )
+    imaging_success = fields.Field(
+        column_name="imaging_success",
+        attribute="imaging_success",
+        widget=widgets.ForeignKeyWidget(ImagingSuccessOptions, field="name"),
+    )
+    """
+    # it seems the M2M only work in the model that contains the declaration (i.e., this works in the Panel model)
+    panels = fields.Field(
+        column_name="panels",
+        attribute="panels",
         widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
     )
+    """
 
     class Meta:
         model = Probe
@@ -179,6 +202,17 @@ class ProbeAdmin(CoreModelAdmin, ImportExportModelAdmin):
     resource_classes = [ProbeResource]
 
 
+class PanelResource(resources.ModelResource):
+    probe = fields.Field(
+        column_name="probe",
+        attribute="probe",
+        widget=widgets.ManyToManyWidget(Probe, field="name", separator="|"),
+    )
+
+    class Meta:
+        model = Source
+
+
 class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "description"]
     exclude = ("probe",)
@@ -186,10 +220,23 @@ class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
         PanelProbesInLine,
         PanelAssaysInLine,
     )
+    resource_classes = [PanelResource]
+
+
+class SourceResource(resources.ModelResource):
+    species = fields.Field(
+        column_name="species",
+        attribute="species",
+        widget=widgets.ForeignKeyWidget(Species, field="name"),
+    )
+
+    class Meta:
+        model = Source
 
 
 class SourceAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
+    resource_classes = [SourceResource]
 
 
 class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
@@ -227,10 +274,35 @@ class SliceOrCultureAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
 
 class AssayResource(resources.ModelResource):
-    probe_panel = fields.Field(
-        column_name="probe_panel",
-        attribute="probe_panel",
+    staining_protocol = fields.Field(
+        column_name="staining_protocol",
+        attribute="staining_protocol",
+        widget=widgets.ForeignKeyWidget(StainingProtocols, field="name"),
+    )
+    staining_by = fields.Field(
+        column_name="staining_by",
+        attribute="staining_by",
+        widget=widgets.ForeignKeyWidget(People, field="name"),
+    )
+    imaging_by = fields.Field(
+        column_name="imaging_by",
+        attribute="imaging_by",
+        widget=widgets.ForeignKeyWidget(People, field="name"),
+    )
+    microscope = fields.Field(
+        column_name="microscope",
+        attribute="microscope",
+        widget=widgets.ForeignKeyWidget(Microscope, field="name"),
+    )
+    panel = fields.Field(
+        column_name="panel",
+        attribute="panel",
         widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
+    )
+    slide = fields.Field(
+        column_name="slide",
+        attribute="slide",
+        widget=widgets.ManyToManyWidget(Slide, field="name", separator="|"),
     )
 
     class Meta:
