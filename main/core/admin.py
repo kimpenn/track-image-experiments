@@ -278,7 +278,7 @@ class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
     fieldsets = [
         ("Type", {"fields": ["type"]}),
-        ("Origin", {"fields": ["name", "donor", "organ", "organ_region"]}),
+        ("Origin", {"fields": ["name", "donor", "organ", "organ_region", "thickness", "slice_index"]}),
         (
             "Source",
             {

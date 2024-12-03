@@ -219,6 +219,14 @@ class Sample(ModelWithName):
     )
     organ = models.ForeignKey(Organs, on_delete=models.SET_NULL, null=True, default=None)
     organ_region = models.ForeignKey(OrganRegions, on_delete=models.SET_NULL, null=True, default=None)
+    thickness = models.PositiveIntegerField(
+        null=True, blank=True, help_text="How thick is the tissue slice? Leave blank if culture."
+    )
+    slice_index = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="This is the order of the slice being cut from the block. The first slice cut is has an index of 1. Leave blank if culture.",
+    )
     treatment = models.ForeignKey(SourceTreatments, on_delete=models.SET_NULL, null=True, default=None)
     storage_time = models.IntegerField(
         null=True, blank=True, help_text="How long was this stored before mounting (days)?"
