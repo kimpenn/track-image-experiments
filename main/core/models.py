@@ -141,38 +141,64 @@ class Donor(models.Model):
         return "{}".format(self.lab_id)
 
 
-class Slide(ModelWithName):
-    # assays_used = models.ManyToManyField(Assay, related_name="assays", blank=True)
+class Slide(models.Model):
+    slide_id = models.CharField(
+        max_length=30,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name="slide ID",
+        help_text="This is an unique ID for the slide. It could, for example, be the Visium slide ID.",
+    )
+
+    # use "name" as alternative to "slide_id". this allows us to use our default foreign key display function in the admin panel
+    @property
+    def name(self):
+        return self.slide_id
+
+    def __str__(self):
+        return "{}".format(self.slide_id)
 
     class Meta:
         verbose_name_plural = "slides"
 
 
-class Assay(models.Model):
-    assay_id = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="assay ID")
+class Assay(ModelWithName):
     staining_protocol = models.ForeignKey(StainingProtocols, on_delete=models.SET_NULL, null=True, default=None)
+    panel = models.ManyToManyField(Panel, related_name="panels")
+
+    class Meta:
+        verbose_name_plural = "Assays"
+
+
+class Image(ModelWithName):
+    image_id = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="image ID")
+    assay = models.ForeignKey(
+        Assay, on_delete=models.SET_NULL, null=True, default=None, related_name="assays", blank=True
+    )
+    slide = models.ForeignKey(
+        Slide, on_delete=models.SET_NULL, null=True, default=None, related_name="slides", blank=True
+    )
     staining_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="staining_by"
     )
     staining_date = models.DateField(default=datetime.date.today, null=True, blank=True)
-    panel = models.ManyToManyField(Panel, related_name="panels")
     imaging_by = models.ForeignKey(
         People, on_delete=models.SET_NULL, null=True, default=None, related_name="imaging_by"
     )
     imaging_date = models.DateField(default=datetime.date.today, null=True, blank=True)
     microscope = models.ForeignKey(Microscope, on_delete=models.SET_NULL, null=True, default=None)
-    slide = models.ManyToManyField(Slide, related_name="slides", blank=True)
 
-    # use "name" as alternative to "assay_id". this allows us to use our default foreign key display function in the admin panel
+    # use "name" as alternative to "image_id". this allows us to use our default foreign key display function in the admin panel
     @property
     def name(self):
-        return self.assay_id
+        return self.image_id
 
     def __str__(self):
-        return "{}".format(self.assay_id)
+        return "{}".format(self.image_id)
 
     class Meta:
-        verbose_name_plural = "Assays"
+        verbose_name_plural = "Images"
 
 
 class Sample(ModelWithName):

@@ -29,6 +29,7 @@ from .models import (
     Sample,
     Assay,
     Vendor,
+    Image,
 )
 
 
@@ -65,28 +66,46 @@ class PanelAssaysInLine(admin.TabularInline):
     verbose_name = "assay"
 
 
+class ImageSlideInLine(admin.StackedInline):
+    model = Slide
+    extra = 0
+    verbose_name_plural = "Slide imaged"
+    verbose_name = "slide"
+
+
+"""
 class AssaySlidesInLine(admin.TabularInline):
     model = Assay.slide.through
     extra = 0
     verbose_name_plural = "Assay applied to these slides"
     verbose_name = "slide"
+"""
 
-
+"""
 class SlideAssaysInLine(admin.TabularInline):
     model = Assay.slide.through
     extra = 0
     verbose_name_plural = "Slide used with these assays"
     verbose_name = "assay"
+"""
+
+
+class DonorSamplesInLine(admin.TabularInline):
+    model = Sample
+    extra = 0
+    verbose_name_plural = "Samples from this donor"
+    verbose_name = "Sample"
+    # fields = ["name",]
 
 
 class SampleInLine(admin.StackedInline):
     model = Sample
     extra = 0
-    verbose_name_plural = "Slide contains these slices or culture"
+    verbose_name_plural = "Slide contains these samples"
     verbose_name = "Sample"
     # fields = ["type", "donor", "organ", "organ_region", "treatment"]
     fieldsets = [
-        ("Type", {"fields": ["type"]}),
+        ("", {"fields": ["name", "type"]}),
         (
             "Origin",
             {
@@ -243,14 +262,13 @@ class DonorResource(resources.ModelResource):
 class DonorAdmin(CoreModelAdmin, ImportExportModelAdmin):
     list_display = ["name", "species", "sex", "age"]
     resource_classes = [DonorResource]
+    inlines = (DonorSamplesInLine,)
 
 
 class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    search_fields = ["name"]
-    inlines = (
-        SampleInLine,
-        SlideAssaysInLine,
-    )
+    search_fields = ["slide_id"]
+    list_display = ["slide_id"]
+    inlines = (SampleInLine,)
 
 
 class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
@@ -303,31 +321,33 @@ class AssayResource(resources.ModelResource):
         attribute="panel",
         widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
     )
+    """
     slide = fields.Field(
         column_name="slide",
         attribute="slide",
         widget=widgets.ManyToManyWidget(Slide, field="name", separator="|"),
     )
+    """
 
     class Meta:
         model = Assay
 
 
-class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["assay_id", "staining_protocol", "microscope"]
-    list_filter = ("staining_protocol", "microscope")
-    search_fields = ["assay_id"]
+class ImageAdmin(CoreModelAdmin, ImportExportModelAdmin):
+    list_display = ["image_id", "assay", "slide"]
+    list_filter = ("staining_by", "imaging_by", "microscope")
+    search_fields = ["image_id"]
     fieldsets = [
         (
-            "Name",
+            "",
             {
-                "fields": ["assay_id"],
+                "fields": ["image_id", "assay", "slide"],
             },
         ),
         (
             "Staining",
             {
-                "fields": ["staining_protocol", "staining_by", "staining_date"],
+                "fields": ["staining_by", "staining_date"],
             },
         ),
         (
@@ -337,9 +357,34 @@ class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
             },
         ),
     ]
+    # inlines = (ImageSlideInLine,)
+    # resource_classes = [ImageResource]
+
+
+class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
+    list_display = ["name", "staining_protocol"]
+    list_filter = ("staining_protocol",)
+    search_fields = ["name"]
+    exclude = ("panel",)
+    """
+    fieldsets = [
+        (
+            "Name",
+            {
+                "fields": ["name"],
+            },
+        ),
+        (
+            "Staining",
+            {
+                "fields": ["staining_protocol"],
+            },
+        ),
+    ]
+    """
     inlines = (
         AssayPanelsInLine,
-        AssaySlidesInLine,
+        # AssaySlidesInLine,
     )
     resource_classes = [AssayResource]
 
@@ -361,6 +406,7 @@ my_models = [
     StainingProtocols,
     Vendor,
 ]
+admin.site.register(Image, ImageAdmin)
 admin.site.register(Assay, AssayAdmin)
 admin.site.register(Slide, SlideAdmin)
 admin.site.register(Panel, PanelAdmin)
