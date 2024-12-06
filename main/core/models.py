@@ -1,4 +1,4 @@
-import json, datetime
+import datetime
 from django.db import models
 from django.core.cache import cache
 
@@ -20,9 +20,9 @@ class Species(ModelWithName):
         verbose_name_plural = "species"
 
 
-class Vendor(ModelWithName):
+class ProbeVendor(ModelWithName):
     class Meta:
-        verbose_name_plural = "vendors"
+        verbose_name_plural = "probe vendors"
 
 
 class Organs(ModelWithName):
@@ -51,23 +51,30 @@ class People(ModelWithName):
 
 
 class StainingProtocols(ModelWithName):
+    protocol_filename = models.CharField(
+        max_length=50,
+        blank=False,
+        null=False,
+        help_text="This file must exist in /lab/imaging/repo/resources/protocols",
+    )
+
     class Meta:
         verbose_name_plural = "staining protocols"
 
 
-class ProbeTypes(ModelWithName):
+class ProbeClasses(ModelWithName):
     class Meta:
-        verbose_name_plural = "probe types"
+        verbose_name_plural = "probe classes"
 
 
-class FishTechnologies(ModelWithName):
+class ProbeTechnologies(ModelWithName):
     class Meta:
-        verbose_name_plural = "fish technologies"
+        verbose_name_plural = "probe technologies"
 
 
-class FlourescentMolecules(ModelWithName):
+class CaptureChannel(ModelWithName):
     class Meta:
-        verbose_name_plural = "flourescent molecules"
+        verbose_name_plural = "capture channels"
 
 
 class ImagingSuccessOptions(ModelWithName):
@@ -77,17 +84,16 @@ class ImagingSuccessOptions(ModelWithName):
 
 class Probe(ModelWithName):
     target_analyte = models.CharField(max_length=255)
-    target_gencode_id = models.CharField(max_length=255, blank=True, default="")
-    probe_type = models.ForeignKey(ProbeTypes, on_delete=models.SET_NULL, null=True, default=None)
+    target_ensembl_id = models.CharField(max_length=255, blank=True, default="")
+    probe_class = models.ForeignKey(ProbeClasses, on_delete=models.SET_NULL, null=True, default=None)
     antibody_clone_id = models.CharField(max_length=30, blank=True, default="")
-    fish_technology = models.ForeignKey(FishTechnologies, on_delete=models.SET_NULL, null=True, default=None)
-    fluorescent_molecule = models.ForeignKey(FlourescentMolecules, on_delete=models.SET_NULL, null=True, default=None)
+    probe_technology = models.ForeignKey(ProbeTechnologies, on_delete=models.SET_NULL, null=True, default=None)
+    capture_channel = models.ForeignKey(CaptureChannel, on_delete=models.SET_NULL, null=True, default=None)
     stock_concentration = models.CharField(max_length=30, blank=True, default="")
-    working_dilution = models.CharField(max_length=30, blank=True, default="")
     imaging_success = models.ForeignKey(ImagingSuccessOptions, on_delete=models.SET_NULL, null=True, default=None)
     staining_notes = models.TextField(blank=True, default="")
     imaging_notes = models.TextField(blank=True, default="")
-    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, default=None)
+    probe_vendor = models.ForeignKey(ProbeVendor, on_delete=models.SET_NULL, null=True, default=None)
 
 
 class Panel(ModelWithName):
@@ -98,8 +104,11 @@ class Panel(ModelWithName):
 
 class Microscope(ModelWithName):
     model = models.CharField(max_length=30)
-    json_description = models.CharField(
-        max_length=50, blank=True, null=True, help_text="This file should exist in /lab/imaging/repo/resources/"
+    json_filename = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="This file should exist in /lab/imaging/repo/resources/microscopes",
     )
     # json_description = models.FileField(upload_to="hardware_json/", blank=True, null=True)
 
@@ -171,7 +180,7 @@ class Assay(ModelWithName):
         verbose_name_plural = "Assays"
 
 
-class Image(ModelWithName):
+class Image(models.Model):
     image_id = models.PositiveIntegerField(unique=True, blank=False, null=False, verbose_name="image ID")
     assay = models.ForeignKey(
         Assay, on_delete=models.SET_NULL, null=True, default=None, related_name="assays", blank=True
@@ -201,13 +210,30 @@ class Image(ModelWithName):
         verbose_name_plural = "Images"
 
 
-class Sample(ModelWithName):
+class Sample(models.Model):
     SLICE = "S"
     CULTURE = "C"
     SOURCE_FORMAT = {
         SLICE: "Slice",
         CULTURE: "Culture",
     }
+
+    sample_id = models.CharField(
+        max_length=30,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name="sample ID",
+        help_text="This is an unique ID for the sample.",
+    )
+    parent_id = models.CharField(
+        max_length=30,
+        unique=False,
+        blank=False,
+        null=False,
+        verbose_name="parent ID",
+        help_text="This is the ID for the source block or tissue used to derive this sample.",
+    )
     type = models.CharField(max_length=1, choices=SOURCE_FORMAT, null=True, default=None)
     donor = models.ForeignKey(
         Donor,
@@ -252,7 +278,18 @@ class Sample(ModelWithName):
         default=None,
         help_text="Where did we get this material from?",
     )
-    slide = models.ForeignKey(Slide, on_delete=models.SET_NULL, null=True, default=None)
+    slide = models.ForeignKey(Slide, on_delete=models.SET_NULL, null=True, unique=False, default=None)
+
+    # use "name" as alternative to "sample_id". this allows us to use our default foreign key display function in the admin panel
+    @property
+    def name(self):
+        return self.sample_id
+
+    class Meta:
+        verbose_name_plural = "sample"
+
+    def __str__(self):
+        return "{}".format(self.sample_id)
 
 
 class ExposureTime(models.Model):
@@ -262,3 +299,20 @@ class ExposureTime(models.Model):
 
     def __str__(self):
         return "{} / {} / {} msec".format(self.probe, self.microscope, self.exposure_time)
+
+
+class ProbeDilutions(models.Model):
+    panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
+    probe = models.ForeignKey(Probe, on_delete=models.CASCADE)
+    dilution = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        help_text="Dilutions should be represented as the ratio of the dilution factor from stock. So if working concentration is 1/100 of the stock concentration, then enter '1:100'",
+    )
+
+    def __str__(self):
+        return "{} / {} / {}".format(self.panel, self.probe, self.dilution)
+
+    class Meta:
+        verbose_name_plural = "probe dilutions"

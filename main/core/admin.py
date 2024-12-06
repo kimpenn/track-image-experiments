@@ -16,9 +16,9 @@ from .models import (
     SourceTreatments,
     People,
     StainingProtocols,
-    ProbeTypes,
-    FishTechnologies,
-    FlourescentMolecules,
+    ProbeClasses,
+    ProbeTechnologies,
+    CaptureChannel,
     ImagingSuccessOptions,
     Probe,
     Panel,
@@ -28,14 +28,29 @@ from .models import (
     Slide,
     Sample,
     Assay,
-    Vendor,
+    ProbeVendor,
     Image,
+    ProbeDilutions,
 )
 
 
 class ExposureTimeInLine(admin.TabularInline):
     model = ExposureTime
     extra = 0  # number of rows to show
+
+
+class PanelDilutionInLine(admin.TabularInline):
+    model = ProbeDilutions
+    extra = 0  # number of rows to show
+    verbose_name_plural = "Dilution for each probe when used in this panel"
+    verbose_name = "probe dilution"
+
+
+class ProbeDilutionInLine(admin.TabularInline):
+    model = ProbeDilutions
+    extra = 0  # number of rows to show
+    verbose_name_plural = "Probe's dilution in each panel"
+    verbose_name = "probe dilution"
 
 
 class PanelProbesInLine(admin.TabularInline):
@@ -73,23 +88,6 @@ class ImageSlideInLine(admin.StackedInline):
     verbose_name = "slide"
 
 
-"""
-class AssaySlidesInLine(admin.TabularInline):
-    model = Assay.slide.through
-    extra = 0
-    verbose_name_plural = "Assay applied to these slides"
-    verbose_name = "slide"
-"""
-
-"""
-class SlideAssaysInLine(admin.TabularInline):
-    model = Assay.slide.through
-    extra = 0
-    verbose_name_plural = "Slide used with these assays"
-    verbose_name = "assay"
-"""
-
-
 class DonorSamplesInLine(admin.TabularInline):
     model = Sample
     extra = 0
@@ -98,36 +96,12 @@ class DonorSamplesInLine(admin.TabularInline):
     # fields = ["name",]
 
 
-class SampleInLine(admin.StackedInline):
+class SampleInLine(admin.TabularInline):
     model = Sample
     extra = 0
     verbose_name_plural = "Slide contains these samples"
     verbose_name = "Sample"
-    # fields = ["type", "donor", "organ", "organ_region", "treatment"]
-    fieldsets = [
-        ("", {"fields": ["name", "type"]}),
-        (
-            "Origin",
-            {
-                "fields": ["donor", "organ", "organ_region"],
-                "classes": ("expanded",),
-            },
-        ),
-        (
-            "Source",
-            {
-                "fields": [
-                    "treatment",
-                    "storage_time",
-                    "prep_by",
-                    "prep_date",
-                    "acquired_from",
-                ],
-                "classes": ("expanded",),
-            },
-        ),
-        # ("Slide", {"fields": ["slide"]}),
-    ]
+    fields = ["sample_id"]
 
 
 class CoreModelAdmin(admin.ModelAdmin):
@@ -174,29 +148,29 @@ class CoreModelAdmin(admin.ModelAdmin):
 
 
 class MicroscopeAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["name", "model", "json_description"]
+    list_display = ["name", "model", "json_filename"]
 
 
 class ProbeResource(resources.ModelResource):
-    probe_type = fields.Field(
-        column_name="probe_type",
-        attribute="probe_type",
-        widget=widgets.ForeignKeyWidget(ProbeTypes, field="name"),
+    probe_class = fields.Field(
+        column_name="probe_class",
+        attribute="probe_class",
+        widget=widgets.ForeignKeyWidget(ProbeClasses, field="name"),
     )
-    fish_technology = fields.Field(
-        column_name="fish_technology",
-        attribute="fish_technology",
-        widget=widgets.ForeignKeyWidget(FishTechnologies, field="name"),
+    probe_technology = fields.Field(
+        column_name="probe_technology",
+        attribute="probe_technology",
+        widget=widgets.ForeignKeyWidget(ProbeTechnologies, field="name"),
     )
-    fluorescent_molecule = fields.Field(
-        column_name="fluorescent_molecule",
-        attribute="fluorescent_molecule",
-        widget=widgets.ForeignKeyWidget(FlourescentMolecules, field="name"),
+    capture_channel = fields.Field(
+        column_name="capture_channel",
+        attribute="capture_channel",
+        widget=widgets.ForeignKeyWidget(CaptureChannel, field="name"),
     )
-    vendor = fields.Field(
-        column_name="vendor",
-        attribute="vendor",
-        widget=widgets.ForeignKeyWidget(Vendor, field="name"),
+    probe_vendor = fields.Field(
+        column_name="probe_vendor",
+        attribute="probe_vendor",
+        widget=widgets.ForeignKeyWidget(ProbeVendor, field="name"),
     )
     imaging_success = fields.Field(
         column_name="imaging_success",
@@ -217,12 +191,13 @@ class ProbeResource(resources.ModelResource):
 
 
 class ProbeAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["name", "target_analyte", "probe_type", "fluorescent_molecule"]
-    list_filter = ("target_analyte", "probe_type", "fluorescent_molecule")
+    list_display = ["name", "target_analyte", "probe_class", "capture_channel"]
+    list_filter = ("target_analyte", "probe_class", "capture_channel")
     search_fields = ["name"]
     inlines = (
         ProbePanelsInLine,
         ExposureTimeInLine,
+        ProbeDilutionInLine,
     )
     resource_classes = [ProbeResource]
 
@@ -239,11 +214,13 @@ class PanelResource(resources.ModelResource):
 
 
 class PanelAdmin(CoreModelAdmin, ImportExportModelAdmin):
+    search_fields = ["name"]
     list_display = ["name", "description"]
     exclude = ("probe",)
     inlines = (
         PanelProbesInLine,
         PanelAssaysInLine,
+        PanelDilutionInLine,
     )
     resource_classes = [PanelResource]
 
@@ -272,13 +249,13 @@ class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
 
 class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["name", "type", "donor", "organ", "treatment"]
+    list_display = ["sample_id", "type", "donor", "organ", "treatment"]
     list_filter = ("type", "donor", "organ", "treatment")
-    search_fields = ["name"]
+    search_fields = ["sample_id"]
 
     fieldsets = [
-        ("Type", {"fields": ["type"]}),
-        ("Origin", {"fields": ["name", "donor", "organ", "organ_region", "thickness", "slice_index"]}),
+        ("", {"fields": ["sample_id", "type"]}),
+        ("Origin", {"fields": ["donor", "organ", "organ_region", "parent_id", "thickness", "slice_index"]}),
         (
             "Source",
             {
@@ -321,13 +298,6 @@ class AssayResource(resources.ModelResource):
         attribute="panel",
         widget=widgets.ManyToManyWidget(Panel, field="name", separator="|"),
     )
-    """
-    slide = fields.Field(
-        column_name="slide",
-        attribute="slide",
-        widget=widgets.ManyToManyWidget(Slide, field="name", separator="|"),
-    )
-    """
 
     class Meta:
         model = Assay
@@ -357,7 +327,6 @@ class ImageAdmin(CoreModelAdmin, ImportExportModelAdmin):
             },
         ),
     ]
-    # inlines = (ImageSlideInLine,)
     # resource_classes = [ImageResource]
 
 
@@ -382,10 +351,7 @@ class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
         ),
     ]
     """
-    inlines = (
-        AssayPanelsInLine,
-        # AssaySlidesInLine,
-    )
+    inlines = (AssayPanelsInLine,)
     resource_classes = [AssayResource]
 
 
@@ -393,18 +359,20 @@ class AssayAdmin(CoreModelAdmin, ImportExportModelAdmin):
 # we use get_app_list() below to stop them from being sorted and rather they are listed
 # in the order they are added with admin.site.register().
 my_models = [
-    FishTechnologies,
-    FlourescentMolecules,
+    CaptureChannel,
+    ExposureTime,
     ImagingSuccessOptions,
     MaterialSources,
     SourceTreatments,
     Organs,
     OrganRegions,
     People,
-    ProbeTypes,
+    ProbeClasses,
+    ProbeDilutions,
+    ProbeTechnologies,
+    ProbeVendor,
     Species,
     StainingProtocols,
-    Vendor,
 ]
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Assay, AssayAdmin)
@@ -415,7 +383,6 @@ admin.site.register(Microscope, MicroscopeAdmin)
 admin.site.register(Donor, DonorAdmin)
 
 admin.site.register(Sample, SampleAdmin)
-admin.site.register(ExposureTime)
 admin.site.register(my_models, ImportExportModelAdmin)
 
 
