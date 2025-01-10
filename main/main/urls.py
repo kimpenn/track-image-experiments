@@ -23,6 +23,8 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 
 
 urlpatterns = [
+    # this does exact matching, so we're allowing with and without the ending /
     path("admin/", admin.site.urls),
+    path("admin", admin.site.urls),
 ] + debug_toolbar_urls()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
