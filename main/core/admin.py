@@ -96,12 +96,12 @@ class DonorSamplesInLine(admin.TabularInline):
     # fields = ["name",]
 
 
-class SampleInLine(admin.TabularInline):
+class SampleInLine(admin.StackedInline):
     model = Sample
     extra = 0
     verbose_name_plural = "Slide contains these samples"
     verbose_name = "Sample"
-    fields = ["sample_id"]
+    # fields = ["sample_id"]
 
 
 class CoreModelAdmin(admin.ModelAdmin):
@@ -249,9 +249,9 @@ class SlideAdmin(CoreModelAdmin, ImportExportModelAdmin):
 
 
 class SampleAdmin(CoreModelAdmin, ImportExportModelAdmin):
-    list_display = ["sample_id", "type", "donor", "organ", "treatment"]
+    list_display = ["sample_id", "slide", "type", "donor", "organ", "treatment"]
     list_filter = ("type", "donor", "organ", "treatment")
-    search_fields = ["sample_id"]
+    search_fields = ["sample_id", "slide"]
 
     fieldsets = [
         ("", {"fields": ["sample_id", "type"]}),
